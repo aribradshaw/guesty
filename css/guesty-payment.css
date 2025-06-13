@@ -1,0 +1,139 @@
+#guesty-payment-section {
+    max-width: 420px; /* smaller width */
+    margin: 40px auto 0 auto;
+    padding: 24px 32px 32px 32px;
+    background: #fff8f0;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+#guesty-payment-section h3 {
+    font-size: 1.4em;
+    margin-bottom: 18px;
+    color: #6d4c1c;
+    font-family: 'Georgia', serif;
+    letter-spacing: 1px;
+}
+
+#guesty-guest-form,
+#guesty-payment-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    /* Add this: */
+    justify-content: flex-start;
+    min-height: 0;
+}
+
+.guesty-row {
+    display: flex;
+    gap: 12px;
+}
+
+.guesty-row input {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+#guesty-guest-form input,
+#guesty-payment-form input {
+    padding: 8px 10px;
+    border: 1px solid #cbb08f;
+    border-radius: 5px;
+    font-size: 0.98em;
+    background: #fff;
+    transition: border-color 0.2s;
+}
+
+#guesty-guest-form input:focus,
+#guesty-payment-form input:focus {
+    border-color: #c29c74;
+    outline: none;
+}
+
+/* Make button full width and a bit smaller */
+#guesty-guest-form button,
+#guesty-payment-form button {
+    width: 100%;
+    background: #c29c74;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 0;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.2s;
+}
+
+#guesty-guest-form button:hover,
+#guesty-payment-form button:hover {
+    background: #6d4c1c;
+}
+
+#guesty-payment-message {
+    margin-top: 18px;
+    font-size: 1.1em;
+    color: #b94a48;
+}
+
+#guesty-card-element {
+    margin-bottom: 10px;
+    padding: 12px;
+    border: 1px solid #cbb08f;
+    border-radius: 5px;
+    background: #fff;
+}
+
+.guesty-spinner {
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  border: 4px solid #cbb08f;
+  border-top: 4px solid #c29c74;
+  border-radius: 50%;
+  animation: guesty-spin 1s linear infinite;
+}
+@keyframes guesty-spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
+}
+
+/* Add to your guesty-payment.css */
+#guesty-payment-form > .guesty-pci-message {
+    margin-bottom: 0;
+}
+
+#guesty-payment-form .guesty-pci-message {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Remove extra space between PCI message and Book Now button */
+#guesty-payment-form > div:not(#guesty-tokenization-container):not(#guesty-payment-message):not(.guesty-pci-message) {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Specifically target the PCI message if it has a class or ID */
+#guesty-payment-form .guesty-pci-message,
+#guesty-payment-form .pci-message,
+#guesty-payment-form [class*="pci"] {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+/* Reduce margin on the Book Now button */
+#guesty-payment-form button#guesty-pay-btn {
+    margin-top: 10px !important;
+    margin-bottom: 0 !important;
+}
+
+#guesty-payment-form input,
+#guesty-payment-form select,
+#guesty-guest-form input,
+#guesty-guest-form select {
+    background: #fff !important;
+    color: #222;
+}

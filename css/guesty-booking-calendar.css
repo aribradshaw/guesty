@@ -1,0 +1,174 @@
+/* General Calendar Styling */
+#guesty-booking-calendar {
+    max-width: 400px;
+    margin: 20px auto;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    color: #111111; /* Text color */
+}
+
+#calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+#calendar-controls button {
+    background-color: #CBB08F; /* Secondary color */
+    color: #FFFFFF; /* White text */
+    border: 1px solid #CBB08F;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+#calendar-controls button:hover {
+    background-color: #C29C74; /* Primary color */
+}
+
+#calendar-controls button:disabled {
+    background-color: #F3EDE6; /* Same as .calendar-cell.past */
+    color: #999999;
+    border: 1px solid #CBB08F;
+    cursor: not-allowed;
+}
+
+#current-month {
+    font-size: 18px;
+    font-weight: bold;
+    color: #111111; /* Text color */
+}
+
+#calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    min-width: 0; /* Prevent overflow */
+}
+
+.calendar-cell {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    height: 48px; /* Set a fixed height, adjust as needed */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border: 1px solid #CBB08F; /* Secondary color */
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 14px;
+    transition: background 0.2s, color 0.2s;
+}
+
+/* Past Dates */
+.calendar-cell.past {
+    background-color: #F3EDE6; /* Accent color */
+    color: #999999;
+    cursor: not-allowed;
+}
+
+/* Booked Dates */
+.calendar-cell.booked {
+    background-color: #FFCCCC; /* Light red */
+    color: #FFFFFF;
+    cursor: not-allowed;
+}
+
+/* Unavailable Dates */
+.calendar-cell.unavailable {
+    background-color: #FFE6E6; /* Pale red */
+    color: #999999;
+    cursor: not-allowed;
+}
+
+/* Available Dates */
+.calendar-cell.available {
+    background-color: #CCFFCC; /* Light green */
+    color: #111111; /* Text color */
+    cursor: pointer;
+}
+
+/* Empty Cells */
+.calendar-cell.empty {
+    background-color: transparent;
+    border: none;
+    cursor: default;
+}
+
+/* Selected Start Date */
+.calendar-cell.selected-start {
+    background-color: #0073AA; /* Bold blue for start date */
+    color: #FFFFFF; /* White text */
+    font-weight: bold;
+    border: 2px solid #005F8D; /* Darker blue border */
+}
+
+/* Selected End Date */
+.calendar-cell.selected-end {
+    background-color: #005F8D; /* Darker blue for end date */
+    color: #FFFFFF; /* White text */
+    font-weight: bold;
+    border: 2px solid #003F5C; /* Even darker blue border */
+}
+
+/* Selected Range */
+.calendar-cell.selected-range {
+    background-color: #B3D9FF; /* Light blue for range */
+    color: #111111; /* Text color */
+    border: 1px solid #0073AA; /* Blue border */
+}
+
+/* Book Now Button */
+#book-now {
+    background-color: #C29C74; /* Primary color */
+    color: #FFFFFF; /* White text */
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+}
+
+#book-now:hover {
+    background-color: #CBB08F; /* Secondary color */
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #ffffff;
+    border-top: 2px solid #C29C74;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: 5px;
+}
+
+/* Centered Loading Spinner for Quote */
+#quote-details .loading-spinner {
+    display: block;
+    margin: 20px auto;
+    width: 24px;
+    height: 24px;
+    border: 3px solid #ffffff;
+    border-top: 3px solid #C29C74; /* Primary color */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
