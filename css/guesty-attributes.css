@@ -1,0 +1,9 @@
+#guesty-property-attributes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+#guesty-property-attributes div {
+    margin: 4px 0;
+}
