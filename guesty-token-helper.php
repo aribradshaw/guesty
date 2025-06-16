@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MannaGuesty by The Manna Agency and Flygon LC
  * Description: Securely handles Guesty API bearer token and exposes it to front-end JavaScript. Allows various Guesty API shortcode calls.
- * Version: 1.9c - Payment Integration
+ * Version: 1.9e - Calendar Mobile Load
  * Author: Ari Daniel Bradshaw - Flygon LC & Dan Park - The Manna Agency
  */
 
@@ -49,6 +49,18 @@ add_action('wp_enqueue_scripts', function () {
         'ajax_url' => admin_url('admin-ajax.php'),
     ]);
     wp_enqueue_script('guesty-map-script');
+});
+
+add_action('wp_enqueue_scripts', function () {
+    // Enqueue the JavaScript file for the booking calendar
+    wp_register_script('guesty-booking-calendar-script', plugin_dir_url(__FILE__) . 'js/guesty-booking-calendar.js', ['jquery'], '1.0', true);
+    wp_localize_script('guesty-booking-calendar-script', 'guestyBookingAjax', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+    ]);
+    wp_enqueue_script('guesty-booking-calendar-script');
+
+    // Enqueue the CSS file for the booking calendar
+    wp_enqueue_style('guesty-booking-calendar-style', plugin_dir_url(__FILE__) . 'css/guesty-booking-calendar.css', [], '1.0');
 });
 
 function guesty_get_bearer_token($client_id, $client_secret) {

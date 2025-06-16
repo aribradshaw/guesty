@@ -6,7 +6,10 @@
       "type": "SINGLE",
       "roomType": "Entire home/apt",
       "propertyType": "Apartment",
-      "amenities": [],
+      "amenities": [
+        "Suitable for children (2-12 years)",
+        "Suitable for infants (under 2 years)"
+      ],
       "bathrooms": 1,
       "accommodates": 2,
       "bedrooms": 1,
@@ -1044,7 +1047,7 @@
       },
       "reviews": {
         "avg": 10,
-        "total": 2
+        "total": 3
       },
       "nickname": "Gray",
       "tags": [],
@@ -3296,11 +3299,11 @@
       "address": {
         "city": "Scottsdale",
         "country": "United States",
-        "full": "E Sunnyside Dr, Scottsdale, AZ 85259, USA",
-        "lat": 33.594891,
-        "lng": -111.8059324,
+        "full": "10550 East Sunnyside Drive, Scottsdale, Arizona 85259, United States",
+        "lat": 33.5937377,
+        "lng": -111.8528468,
         "state": "Arizona",
-        "street": "East Sunnyside Drive"
+        "street": "10550 East Sunnyside Drive"
       },
       "picture": {
         "thumbnail": "https://assets.guesty.com/image/upload/t_default_thumb/listing_images_s3/production/property-photos/37f4de85516fd996cd1372d50cb53686348493d6589ed996/67e2cee9f2897200110347ae/02d3ef5c-222b-4f-Jpf5m",
@@ -4228,8 +4231,8 @@
         "summary": "-Experience a luxury retreat with a private pool, hot tub, and game room\n-Elegant decor, plush bedding, and a fully equipped gourmet kitchen\n-Outdoor oasis with a putting green, fire pit, and entertainment spaces\n-Prime Scottsdale location near Old Town, golf courses, and shopping\n\nBook now for an unforgettable desert getaway with family and friends"
       },
       "reviews": {
-        "avg": 9.7,
-        "total": 7
+        "avg": 9.8,
+        "total": 8
       },
       "nickname": "Clinton",
       "tags": [],
@@ -5571,8 +5574,8 @@
         "summary": "- Indulge in luxury at HÓZHÓ Scottsdale, where privacy meets resort-style living\n- Over 7,000 square feet of space with both indoor luxury and outdoor amenities \n- Private backyard features a pool, oversized spa, swim-up bar, and sports court \n- Indoor entertainment includes a golf simulator, and smart TVs \n- Book now to experience ultimate relaxation and fun in Scottsdale's exclusive setting"
       },
       "reviews": {
-        "avg": 10,
-        "total": 6
+        "avg": 9.4,
+        "total": 7
       },
       "nickname": "Jenan",
       "tags": [],

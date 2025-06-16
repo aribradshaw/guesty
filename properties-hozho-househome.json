@@ -5440,7 +5440,7 @@
       },
       "reviews": {
         "avg": 10,
-        "total": 2
+        "total": 3
       },
       "nickname": "Coolidge",
       "tags": [
@@ -6321,9 +6321,6 @@
       "roomType": "Entire home/apt",
       "propertyType": "House",
       "amenities": [
-        "Pets allowed",
-        "Suitable for children (2-12 years)",
-        "Suitable for infants (under 2 years)",
         "Air conditioning",
         "Barbeque utensils",
         "Bathtub",
@@ -6360,10 +6357,13 @@
         "Refrigerator",
         "Smoke detector",
         "Stove",
+        "Suitable for children (2-12 years)",
+        "Suitable for infants (under 2 years)",
         "TV",
         "Toaster",
         "Washer",
-        "Wireless Internet"
+        "Wireless Internet",
+        "Pets allowed"
       ],
       "bathrooms": 6.5,
       "accommodates": 20,
