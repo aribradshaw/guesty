@@ -1,4 +1,5 @@
-jQuery(document).ready(function ($) {
+window.addEventListener('DOMContentLoaded', function () {
+    var $ = jQuery;
 
     const calendarDiv = $('#guesty-booking-calendar');
     const calendarGrid = $('#calendar-grid');
@@ -8,13 +9,16 @@ jQuery(document).ready(function ($) {
     const quoteDiv = $('<div id="quote-details" style="margin-top: 20px;"></div>').insertAfter(calendarDiv);
 
     let currentDate = new Date(); // Start with the current date
-    const listingId = $('#guesty-listing-id').data('listing-id'); // Replace with dynamic listing ID
+    const listingDiv = $('#guesty-listing-id');
+    const listingId = listingDiv.data('listing-id');
+    console.log('[Guesty Calendar] listingDiv:', listingDiv.length, 'listingId:', listingId);
 
     let selectedStartDate = null;
     let selectedEndDate = null;
 
     if (!listingId) {
         calendarGrid.text('No listing ID found.');
+        console.error('[Guesty Calendar] No listing ID found on the page.');
         return;
     }
 
@@ -92,6 +96,12 @@ jQuery(document).ready(function ($) {
             let cellClass = 'calendar-cell';
             let cellContent = day;
 
+            // Add price for this day, if available
+            let priceHtml = '';
+            if (dayData && dayData.price) {
+                priceHtml = `<div class="calendar-price">$${dayData.price}</div>`;
+            }
+
             if (currentDate < new Date()) {
                 cellClass += ' past'; // Disable past dates
             } else if (dayData) {
@@ -106,7 +116,11 @@ jQuery(document).ready(function ($) {
                 cellClass += ' unavailable'; // Default to unavailable if no data
             }
 
-            const cell = $(`<div class="${cellClass}" data-date="${formattedDate}">${cellContent}</div>`);
+            // Render day number and price (if any)
+            const cell = $(`<div class="${cellClass}" data-date="${formattedDate}">
+                <div>${cellContent}</div>
+                ${priceHtml}
+            </div>`);
             calendarGrid.append(cell);
 
             // Add click event for available dates

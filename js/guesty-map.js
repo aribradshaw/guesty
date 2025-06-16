@@ -1,4 +1,5 @@
-jQuery(document).ready(function ($) {
+window.addEventListener('DOMContentLoaded', function () {
+    var $ = jQuery;
     const mapDiv = $('#guesty-map');
     const listingDiv = $('#guesty-listing-id');
     const listingId = listingDiv.data('listing-id');

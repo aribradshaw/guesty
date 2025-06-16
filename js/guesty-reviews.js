@@ -1,10 +1,13 @@
-jQuery(document).ready(function ($) {
+window.addEventListener('DOMContentLoaded', function () {
+    var $ = jQuery;
     const reviewsDiv = $('#guesty-reviews');
     const listingDiv = $('#guesty-listing-id');
     const listingId = listingDiv.data('listing-id');
+    console.log('[Guesty Reviews] listingDiv:', listingDiv.length, 'listingId:', listingId);
 
     if (!listingId) {
         reviewsDiv.text('No listing ID found on the page.');
+        console.error('[Guesty Reviews] No listing ID found on the page.');
         return;
     }
 
@@ -18,6 +21,7 @@ jQuery(document).ready(function ($) {
                 token_set: window.guestyTokenSet || 0
             },
             success: function (response) {
+                console.log('[Guesty Reviews] AJAX response:', response);
                 if (response.data && response.data.debug) {
                 }
                 if (response.success) {
@@ -29,7 +33,8 @@ jQuery(document).ready(function ($) {
                     reviewsDiv.text(response.data.message || 'Error loading reviews.');
                 }
             },
-            error: function () {
+            error: function (xhr, status, error) {
+                console.error('[Guesty Reviews] AJAX error:', status, error, xhr);
                 reviewsDiv.text('Error loading reviews.');
             }
         });

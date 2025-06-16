@@ -1,4 +1,5 @@
-jQuery(document).ready(function ($) {
+window.addEventListener('DOMContentLoaded', function () {
+    var $ = jQuery;
     console.log('Guesty Attributes script loaded.');
     
     const listingDiv = $('#guesty-listing-id');
