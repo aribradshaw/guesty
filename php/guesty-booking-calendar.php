@@ -26,15 +26,6 @@ function guesty_booking_calendar_shortcode($atts) {
 }
 add_shortcode('guesty_booking_calendar', 'guesty_booking_calendar_shortcode');
 
-// Register and enqueue the JavaScript and CSS files
-add_action('wp_enqueue_scripts', function () {
-    wp_register_script('guesty-booking-calendar-script', plugin_dir_url(dirname(__FILE__)) . '/js/guesty-booking-calendar.js', ['jquery'], '1.0', true);
-    wp_register_style('guesty-booking-calendar-style', plugin_dir_url(__FILE__) . '../css/guesty-booking-calendar.css', [], '1.0');
-    wp_localize_script('guesty-booking-calendar-script', 'guestyBookingAjax', [
-        'ajax_url' => admin_url('admin-ajax.php'),
-    ]);
-});
-
 add_action('wp_ajax_fetch_calendar_data', 'fetch_calendar_data');
 add_action('wp_ajax_nopriv_fetch_calendar_data', 'fetch_calendar_data');
 
