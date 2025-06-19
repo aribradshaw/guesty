@@ -164,6 +164,11 @@
     animation: spin 1s linear infinite;
 }
 
+/* Force removal of any border from the days-of-the-week header row */
+.guesty-calendar-days-row {
+    border: none !important;
+}
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);

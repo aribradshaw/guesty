@@ -1,5 +1,79 @@
+// Debug: Verify script loads
+console.log('[DEBUG] guesty-booking-calendar.js file loaded');
+
 window.addEventListener('DOMContentLoaded', function () {
     var $ = jQuery;
+
+    // --- Inject robust CSS for the days header ---
+    (function injectCalendarHeaderCSS() {
+        if (document.getElementById('guesty-calendar-header-style')) return;
+        const style = document.createElement('style');
+        style.id = 'guesty-calendar-header-style';
+        style.textContent = `
+        .guesty-calendar-days-row { 
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            width: 100% !important;
+            background: #f7f7f7 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+            gap: 0 !important;
+            border: none !important;
+        }
+        .guesty-calendar-day-header {
+            text-align: center !important;
+            font-weight: bold !important;
+            padding: 0 !important;
+            color: #333 !important;
+            background: #f7f7f7 !important;
+            font-size: 14px !important;
+            letter-spacing: 1px !important;
+            box-sizing: border-box !important;
+            user-select: none !important;
+            border: none !important;
+        }
+        #calendar-grid {
+            display: grid !important;
+            grid-template-columns: repeat(7, 1fr) !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        `;
+        document.head.appendChild(style);
+    })();
+
+    // --- Render the days-of-the-week header above the calendar grid ---
+    function renderDaysOfWeekHeader() {
+        setTimeout(function() {
+            const controls = document.getElementById('calendar-controls');
+            const grid = document.getElementById('calendar-grid');
+            if (!controls || !grid) return false;
+            // Remove any existing header to avoid duplicates
+            const prevHeader = controls.parentNode.querySelector('.guesty-calendar-days-row');
+            if (prevHeader) prevHeader.remove();
+            // Create header
+            const daysRow = document.createElement('div');
+            daysRow.className = 'guesty-calendar-days-row';
+            daysRow.style.cssText = 'display: grid !important; grid-template-columns: repeat(7, 1fr) !important; width: 100% !important; background: #f7f7f7 !important; margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; gap: 0 !important; border: none !important;';
+            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            days.forEach(day => {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'guesty-calendar-day-header';
+                dayDiv.textContent = day;
+                dayDiv.style.cssText = 'text-align: center !important; font-weight: bold !important; padding: 0 !important; color: #333 !important; background: #f7f7f7 !important; font-size: 14px !important; letter-spacing: 1px !important; box-sizing: border-box !important; user-select: none !important; border: none !important;';
+                daysRow.appendChild(dayDiv);
+            });
+            try {
+                controls.parentNode.insertBefore(daysRow, grid);
+                return true;
+            } catch (error) {
+                console.error('Error inserting calendar header:', error);
+                return false;
+            }
+        }, 50);
+        return 'pending';
+    }
 
     const calendarDiv = $('#guesty-booking-calendar');
     const calendarGrid = $('#calendar-grid');
@@ -72,10 +146,9 @@ window.addEventListener('DOMContentLoaded', function () {
         }).always(function() {
             if (button) hideLoading(button, originalText);
         });
-    }
-
-    // Render the calendar
+    }    // Render the calendar
     const renderCalendar = (data, date) => {
+        renderDaysOfWeekHeader(); // Always inject header before rendering grid
         calendarGrid.empty();
         currentMonthSpan.text(date.toLocaleString('default', { month: 'long', year: 'numeric' }));
 
@@ -348,9 +421,11 @@ window.addEventListener('DOMContentLoaded', function () {
         document.getElementById('prev-month').disabled = (
             currentDate.getFullYear() === minDate.getFullYear() &&
             currentDate.getMonth() === minDate.getMonth()
-        );
-        // Disable "Next" if the first day of the displayed month is >= maxDate
+        );        // Disable "Next" if the first day of the displayed month is >= maxDate
         const firstOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         document.getElementById('next-month').disabled = (firstOfMonth >= maxDate);
     }
+
+    // Call header rendering on initial load
+    renderDaysOfWeekHeader();
 });
