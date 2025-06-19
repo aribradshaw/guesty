@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MannaGuesty by The Manna Agency and Flygon LC
  * Description: Securely handles Guesty API bearer token and exposes it to front-end JavaScript. Allows various Guesty API shortcode calls.
- * Version: 2.0 - Calendar Days of the Week Header
+ * Version: 2.1 - Calendar Key
  * Author: Ari Daniel Bradshaw - Flygon LC & Dan Park - The Manna Agency
  */
 
