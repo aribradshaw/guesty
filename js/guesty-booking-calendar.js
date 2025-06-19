@@ -43,6 +43,70 @@ window.addEventListener('DOMContentLoaded', function () {
         document.head.appendChild(style);
     })();
 
+    // --- Inject robust CSS for the calendar key ---
+    (function injectCalendarKeyCSS() {
+        if (document.getElementById('guesty-calendar-key-style')) return;
+        const style = document.createElement('style');
+        style.id = 'guesty-calendar-key-style';
+        style.textContent = `
+        .guesty-calendar-key-row {
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            gap: 18px !important;
+            margin: 32px 0 8px 0 !important;
+            padding: 0 !important;
+            font-size: 13px !important;
+            background: transparent !important;
+        }
+        .guesty-calendar-key-item {
+            display: flex !important;
+            align-items: center !important;
+            gap: 5px !important;
+        }
+        .guesty-calendar-key-box {
+            width: 18px !important;
+            height: 18px !important;
+            border-radius: 4px !important;
+            border: 1px solid #bbb !important;
+            display: inline-block !important;
+            margin-right: 4px !important;
+        }
+        .guesty-key-available { background: #CCFFCC !important; border-color: #CCFFCC !important; }
+        .guesty-key-unavailable { background: #FFE6E6 !important; border-color: #FFE6E6 !important; }
+        .guesty-key-reserved { background: #F3EDE6 !important; border-color: #F3EDE6 !important; }
+        .guesty-key-booked { background: #FFCCCC !important; border-color: #FFCCCC !important; }
+        `;
+        document.head.appendChild(style);
+    })();
+
+    // --- Render the color key below the calendar grid ---
+    function renderCalendarKey() {
+        setTimeout(function() {
+            const calendar = document.getElementById('guesty-booking-calendar');
+            const grid = document.getElementById('calendar-grid');
+            if (!calendar || !grid) return false;
+            // Remove any existing key to avoid duplicates
+            const prevKey = calendar.querySelector('.guesty-calendar-key-row');
+            if (prevKey) prevKey.remove();
+            // Create key row
+            const keyRow = document.createElement('div');
+            keyRow.className = 'guesty-calendar-key-row';
+            keyRow.innerHTML = `
+                <span class="guesty-calendar-key-item"><span class="guesty-calendar-key-box guesty-key-available"></span>Available</span>
+                <span class="guesty-calendar-key-item"><span class="guesty-calendar-key-box guesty-key-unavailable"></span>Unavailable</span>
+                <span class="guesty-calendar-key-item"><span class="guesty-calendar-key-box guesty-key-reserved"></span>Past</span>
+                <span class="guesty-calendar-key-item"><span class="guesty-calendar-key-box guesty-key-booked"></span>Booked</span>
+            `;
+            // Insert after the calendar grid
+            if (grid.nextSibling) {
+                calendar.insertBefore(keyRow, grid.nextSibling);
+            } else {
+                calendar.appendChild(keyRow);
+            }
+        }, 30);
+    }
+
     // --- Render the days-of-the-week header above the calendar grid ---
     function renderDaysOfWeekHeader() {
         setTimeout(function() {
@@ -428,4 +492,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
     // Call header rendering on initial load
     renderDaysOfWeekHeader();
+    // Call key rendering on initial load
+    renderCalendarKey();
 });
