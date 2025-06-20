@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MannaGuesty by The Manna Agency and Flygon LC
  * Description: Securely handles Guesty API bearer token and exposes it to front-end JavaScript. Allows various Guesty API shortcode calls.
- * Version: 2.3 - Reviews Hide Under 4
+ * Version: 2.4 - All Properties with Mapping
  * Author: Ari Daniel Bradshaw - Flygon LC & Dan Park - The Manna Agency
  */
 
@@ -17,6 +17,8 @@ require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-reviews.php';
 require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-map.php';
 require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-payment.php';
 require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-all-properties.php';
+// Load the new listing/page mapping admin page
+require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-listing-page-mapping.php';
 
 add_action('wp_ajax_get_guesty_token', 'guesty_token_ajax');
 add_action('wp_ajax_nopriv_get_guesty_token', 'guesty_token_ajax');

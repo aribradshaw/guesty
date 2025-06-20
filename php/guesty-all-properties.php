@@ -31,35 +31,68 @@ add_action('wp_ajax_nopriv_guesty_all_properties', 'guesty_all_properties_ajax')
 function guesty_all_properties_ajax() {
     $checkin = sanitize_text_field($_POST['checkin']);
     $checkout = sanitize_text_field($_POST['checkout']);
-    $token_set = isset($_POST['token_set']) ? intval($_POST['token_set']) : 0;
 
     $client_id_1 = get_option('guesty_client_id_1', '');
     $client_secret_1 = get_option('guesty_client_secret_1', '');
     $client_id_2 = get_option('guesty_client_id_2', '');
     $client_secret_2 = get_option('guesty_client_secret_2', '');
 
-    if ($token_set === 2) {
-        $token = guesty_get_bearer_token($client_id_2, $client_secret_2);
-    } else {
-        $token = guesty_get_bearer_token($client_id_1, $client_secret_1);
+    $tokens = [];
+    if ($client_id_1 && $client_secret_1) {
+        $token1 = guesty_get_bearer_token($client_id_1, $client_secret_1);
+        if ($token1) $tokens[] = $token1;
+    }
+    if ($client_id_2 && $client_secret_2) {
+        $token2 = guesty_get_bearer_token($client_id_2, $client_secret_2);
+        if ($token2) $tokens[] = $token2;
     }
 
-    if (!$token) {
-        wp_send_json_error(['message' => 'Unable to retrieve API token.']);
+    if (empty($tokens)) {
+        wp_send_json_error(['message' => 'Unable to retrieve any API tokens.']);
     }
 
-    $url = "https://booking.guesty.com/api/listings?numberOfBedrooms=0&numberOfBathrooms=0&checkIn={$checkin}&checkOut={$checkout}&limit=20";
-    $response = wp_remote_get($url, [
-        'headers' => [
-            'Authorization' => "Bearer $token",
-            'Accept' => 'application/json; charset=utf-8',
-        ],
-    ]);
-    $data = json_decode(wp_remote_retrieve_body($response), true);
-
-    if (is_wp_error($response) || !is_array($data)) {
-        wp_send_json_error(['message' => 'No valid data returned from API.']);
+    $all_results = [];
+    $errors = [];
+    // Load listing-page mapping
+    $listing_page_map = get_option('guesty_listing_page_mapping', []);
+    foreach ($tokens as $token) {
+        $url = "https://booking.guesty.com/api/listings?numberOfBedrooms=0&numberOfBathrooms=0&checkIn={$checkin}&checkOut={$checkout}&limit=20";
+        $response = wp_remote_get($url, [
+            'headers' => [
+                'Authorization' => "Bearer $token",
+                'Accept' => 'application/json; charset=utf-8',
+            ],
+        ]);
+        if (is_wp_error($response)) {
+            $errors[] = $response->get_error_message();
+            continue;
+        }
+        $data = json_decode(wp_remote_retrieve_body($response), true);        if (is_array($data) && isset($data['results']) && is_array($data['results'])) {
+            foreach ($data['results'] as $listing) {
+                $lid = $listing['_id']; // Use _id instead of id to match the mapping
+                if (isset($listing_page_map[$lid]) && $listing_page_map[$lid]) {
+                    $page_id = $listing_page_map[$lid];
+                    $page = get_post($page_id);
+                    if ($page && $page->post_status === 'publish') {
+                        $listing['mapped_page'] = [
+                            'ID' => $page->ID,
+                            'title' => $page->post_title,
+                            'url' => get_permalink($page->ID)
+                        ];
+                    }
+                }
+                $all_results[] = $listing;
+            }
+        }
     }
 
-    wp_send_json_success(['properties' => $data]);
+    if (empty($all_results)) {
+        $msg = 'No valid data returned from API.';
+        if (!empty($errors)) {
+            $msg .= ' Errors: ' . implode('; ', $errors);
+        }
+        wp_send_json_error(['message' => $msg]);
+    }
+
+    wp_send_json_success(['properties' => ['results' => $all_results]]);
 }

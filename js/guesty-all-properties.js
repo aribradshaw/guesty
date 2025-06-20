@@ -19,7 +19,15 @@ jQuery(function($) {
                 } else {
                     let html = '<ul class="guesty-properties-ul">';
                     props.forEach(function(p) {
-                        html += `<li class="guesty-property-item"><strong>${p.title || p.name}</strong><br>Bedrooms: ${p.bedrooms || '-'} | Bathrooms: ${p.bathrooms || '-'}<br>Max Guests: ${p.accommodates || '-'}<br>${p.address && p.address.formatted ? p.address.formatted : ''}</li>`;
+                        let title = p.mapped_page && p.mapped_page.title ? p.mapped_page.title : (p.title || p.name);
+                        let link = p.mapped_page && p.mapped_page.url ? p.mapped_page.url : null;
+                        html += `<li class="guesty-property-item">`;
+                        if (link) {
+                            html += `<a href="${link}" target="_blank"><strong>${title}</strong></a>`;
+                        } else {
+                            html += `<strong>${title}</strong>`;
+                        }
+                        html += `<br>Bedrooms: ${p.bedrooms || '-'} | Bathrooms: ${p.bathrooms || '-'}<br>Max Guests: ${p.accommodates || '-'}<br>${p.address && p.address.formatted ? p.address.formatted : ''}</li>`;
                     });
                     html += '</ul>';
                     $('#guesty-properties-list').html(html);
