@@ -76,6 +76,7 @@ window.addEventListener('DOMContentLoaded', function () {
         .guesty-key-unavailable { background: #FFE6E6 !important; border-color: #FFE6E6 !important; }
         .guesty-key-reserved { background: #F3EDE6 !important; border-color: #F3EDE6 !important; }
         .guesty-key-booked { background: #FFCCCC !important; border-color: #FFCCCC !important; }
+        .guesty-key-halfday { background: #FFFFCC !important; border-color: #FFFFCC !important; }
         `;
         document.head.appendChild(style);
     })();
@@ -97,6 +98,7 @@ window.addEventListener('DOMContentLoaded', function () {
                 <span class="guesty-calendar-key-item"><span class="guesty-calendar-key-box guesty-key-unavailable"></span>Unavailable</span>
                 <span class="guesty-calendar-key-item"><span class="guesty-calendar-key-box guesty-key-reserved"></span>Past</span>
                 <span class="guesty-calendar-key-item"><span class="guesty-calendar-key-box guesty-key-booked"></span>Booked</span>
+                <span class="guesty-calendar-key-item"><span class="guesty-calendar-key-box guesty-key-halfday"></span>Departure-Only Day</span>
             `;
             // Insert after the calendar grid
             if (grid.nextSibling) {
@@ -239,11 +241,29 @@ window.addEventListener('DOMContentLoaded', function () {
                 priceHtml = `<div class="calendar-price">$${dayData.price}</div>`;
             }
 
+            // --- Half Day (Departure Day) Logic ---
+            let isHalfDay = false;
+            if (dayData && dayData.status === 'booked') {
+                // Find previous day in data
+                const prevDate = new Date(currentDate);
+                prevDate.setDate(prevDate.getDate() - 1);
+                const prevFormatted = formatDate(prevDate);
+                const prevDayData = data.find((d) => d.date === prevFormatted);
+                if (
+                    prevDayData &&
+                    prevDayData.status === 'available' &&
+                    prevDayData.ctd === false // ctd = closed to departure
+                ) {
+                    cellClass += ' departure-day-half';
+                    isHalfDay = true;
+                }
+            }
+
             if (currentDate < new Date()) {
                 cellClass += ' past'; // Disable past dates
             } else if (dayData) {
                 if (dayData.status === 'booked') {
-                    cellClass += ' booked';
+                    if (!isHalfDay) cellClass += ' booked';
                 } else if (dayData.status === 'unavailable') {
                     cellClass += ' unavailable';
                 } else if (dayData.status === 'available') {
@@ -260,8 +280,8 @@ window.addEventListener('DOMContentLoaded', function () {
             </div>`);
             calendarGrid.append(cell);
 
-            // Add click event for available dates
-            if (cellClass.includes('available')) {
+            // Add click event for available and half-day (departure day) dates
+            if (cellClass.includes('available') || cellClass.includes('departure-day-half')) {
                 cell.on('click', function () {
                     handleDateSelection(formattedDate, cell);
                 });
@@ -338,6 +358,10 @@ window.addEventListener('DOMContentLoaded', function () {
             const cellDate = new Date($(this).data('date'));
             if (cellDate >= startDate && cellDate <= endDate) {
                 $(this).addClass('selected-range');
+                // If this is a departure-day-half, also add a class for selected
+                if ($(this).hasClass('departure-day-half')) {
+                    $(this).addClass('selected-halfday');
+                }
             }
         });
 
@@ -351,7 +375,7 @@ window.addEventListener('DOMContentLoaded', function () {
         selectedEndDate = null;
         window.selectedStartDateDisplay = '';
         window.selectedEndDateDisplay = '';
-        $('.calendar-cell').removeClass('selected-range selected-start selected-end');
+        $('.calendar-cell').removeClass('selected-range selected-start selected-end selected-halfday');
         quoteDiv.empty();
     };
 

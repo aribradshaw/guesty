@@ -169,6 +169,44 @@
     border: none !important;
 }
 
+/* Half Day (Departure Day) Cell */
+.calendar-cell.departure-day-half {
+    background-color: #FFF7CC; /* Unique yellow for half day */
+    color: #B8860B; /* Dark gold text */
+    border: 2px dashed #FFD700; /* Gold border */
+    cursor: pointer;
+    position: relative;
+}
+
+/* Selected Half Day (Departure Day) in Range */
+.calendar-cell.departure-day-half.selected-halfday,
+.calendar-cell.departure-day-half.selected-range {
+    background-color: #B3D9FF; /* Same as .selected-range */
+    color: #111111;
+    border: 1px solid #0073AA;
+}
+
+/* Past Half Day (Departure Day) Cell - match .past */
+.calendar-cell.past.departure-day-half {
+    background-color: #F3EDE6 !important; /* Same as .past */
+    color: #999999 !important;
+    border: 1px solid #CBB08F !important;
+    cursor: not-allowed !important;
+}
+
+/* Legend Key for Half Day */
+.guesty-key-halfday {
+    background: #FFF7CC !important;
+    border-color: #FFD700 !important;
+}
+
+/* Make the key wrap on small screens */
+.guesty-calendar-key-row {
+    flex-wrap: wrap !important;
+    row-gap: 8px !important;
+    word-break: break-word !important;
+}
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);
