@@ -1,0 +1,9 @@
+#guesty-all-properties { max-width: 600px; margin: 30px auto; font-family: Arial, sans-serif; }
+#guesty-all-properties-form { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; align-items: center; }
+#guesty-all-properties-form label { font-weight: bold; }
+#guesty-all-properties-form input[type="date"] { padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; }
+#guesty-all-properties-form button { background: #C29C74; color: #fff; border: none; border-radius: 4px; padding: 6px 18px; font-size: 15px; cursor: pointer; }
+#guesty-all-properties-form button:hover { background: #CBB08F; }
+#guesty-properties-list { margin-top: 10px; }
+.guesty-properties-ul { list-style: none; padding: 0; }
+.guesty-property-item { background: #f7f7f7; border: 1px solid #CBB08F; border-radius: 6px; margin-bottom: 10px; padding: 12px; }

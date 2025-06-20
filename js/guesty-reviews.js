@@ -60,7 +60,7 @@ window.addEventListener('DOMContentLoaded', function () {
             const response = raw.response?.body?.value;
 
             // Skip reviews with no date, no rating, and no body
-            if (!date && !rating && !body) return;
+            if ((!date && !rating && !body) || (rating < 4)) return;
 
             const reviewHtml = `
                 <div class="review">
