@@ -75,6 +75,7 @@ function guesty_settings_page() {
             <li><strong>[guesty_attributes]</strong> - Displays property attributes for a specific listing.</li>
             <li><strong>[guesty_booking_calendar]</strong> - Displays the booking calendar for a specific listing.</li>
             <li><strong>[guesty_payment]</strong> - Displays the payment form for a specific listing.</li>
+            <li><strong>[guesty_all_properties]</strong> - Displays all properties with a search form.</li>
         </ul>
     </div>
     <?php
