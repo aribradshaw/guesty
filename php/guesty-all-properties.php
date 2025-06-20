@@ -79,9 +79,10 @@ function guesty_all_properties_ajax() {
                             'title' => $page->post_title,
                             'url' => get_permalink($page->ID)
                         ];
+                        // Only add to results if it has a valid mapping
+                        $all_results[] = $listing;
                     }
                 }
-                $all_results[] = $listing;
             }
         }
     }

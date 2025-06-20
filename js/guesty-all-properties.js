@@ -20,10 +20,9 @@ jQuery(function($) {
                     let html = '<ul class="guesty-properties-ul">';
                     props.forEach(function(p) {
                         let title = p.mapped_page && p.mapped_page.title ? p.mapped_page.title : (p.title || p.name);
-                        let link = p.mapped_page && p.mapped_page.url ? p.mapped_page.url : null;
-                        html += `<li class="guesty-property-item">`;
+                        let link = p.mapped_page && p.mapped_page.url ? p.mapped_page.url : null;                        html += `<li class="guesty-property-item">`;
                         if (link) {
-                            html += `<a href="${link}" target="_blank"><strong>${title}</strong></a>`;
+                            html += `<a href="${link}"><strong>${title}</strong></a>`;
                         } else {
                             html += `<strong>${title}</strong>`;
                         }
