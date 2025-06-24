@@ -13,10 +13,15 @@ jQuery(function($) {
         url.searchParams.set('checkout', checkout);
         window.history.replaceState({}, '', url);
     }
-    
-    // Function to perform search
+      // Function to perform search
     function performSearch(checkin, checkout) {
         if (!checkin || !checkout) return;
+        
+        // Calculate number of nights
+        const checkinDate = new Date(checkin);
+        const checkoutDate = new Date(checkout);
+        const timeDiff = checkoutDate.getTime() - checkinDate.getTime();
+        const nights = Math.ceil(timeDiff / (1000 * 3600 * 24));
         
         $('#guesty-properties-list').html('Loading...');
         updateUrlParameters(checkin, checkout);
@@ -26,17 +31,26 @@ jQuery(function($) {
             checkin,
             checkout,
             token_set: window.guestyTokenSet || 0
-        }, function(response) {
-            if (response.success && response.data.properties && response.data.properties.results) {
+        }, function(response) {            if (response.success && response.data.properties && response.data.properties.results) {
                 const props = response.data.properties.results;
                 if (props.length === 0) {
                     $('#guesty-properties-list').html('No properties available for these dates.');
                 } else {
-                    let html = '<ul class="guesty-properties-ul">';
-                    props.forEach(function(p) {
+                    // Sort properties by bedrooms (most to least)
+                    props.sort((a, b) => (b.bedrooms || 0) - (a.bedrooms || 0));
+                    
+                    let html = '<ul class="guesty-properties-ul">';                    props.forEach(function(p) {
                         let title = p.mapped_page && p.mapped_page.title ? p.mapped_page.title : (p.title || p.name);
                         let link = p.mapped_page && p.mapped_page.url ? p.mapped_page.url : null;
                         let image = p.main_image || '';
+                        let priceHtml = '';
+                        
+                        // Add price information if available
+                        if (p.price_info && p.price_info.total) {
+                            const symbol = p.price_info.currency === 'USD' ? '$' : p.price_info.currency;
+                            const nightText = nights === 1 ? 'night' : 'nights';
+                            priceHtml = `<div class="property-price"><span class="price-amount">${symbol}${p.price_info.formatted}</span> <span class="price-duration">for ${nights} ${nightText}</span></div>`;
+                        }
                         
                         html += `<li class="guesty-property-item">`;
                         html += `<div class="property-details">`;
@@ -45,7 +59,16 @@ jQuery(function($) {
                         } else {
                             html += `<strong>${title}</strong>`;
                         }
-                        html += `<br>Bedrooms: ${p.bedrooms || '-'} | Bathrooms: ${p.bathrooms || '-'}<br>Max Guests: ${p.accommodates || '-'}<br>${p.address && p.address.formatted ? p.address.formatted : ''}`;                        html += `</div>`;
+                        html += `<div class="property-amenities">`;
+                        html += `<span class="amenity"><span class="icon">🛏️</span> ${p.bedrooms || '-'}</span>`;
+                        html += `<span class="amenity"><span class="icon">🛁</span> ${p.bathrooms || '-'}</span>`;
+                        html += `<span class="amenity"><span class="icon">👥</span> ${p.accommodates || '-'}</span>`;
+                        html += `</div>`;
+                        if (p.address && p.address.formatted) {
+                            html += `<div class="property-address">${p.address.formatted}</div>`;
+                        }
+                        html += priceHtml; // Add price at the bottom
+                        html += `</div>`;
                         if (image) {
                             if (link) {
                                 html += `<div class="property-image"><a href="${link}"><img src="${image}" alt="${title}" /></a></div>`;

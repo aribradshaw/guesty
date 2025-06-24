@@ -79,6 +79,9 @@ function guesty_all_properties_ajax() {
                             $main_image = $listing['pictures'][0]['thumbnail'] ?? $listing['pictures'][0]['url'] ?? null;
                         }
                         
+                        // Get pricing for this property
+                        $price_info = guesty_get_property_price($lid, $checkin, $checkout, $token);
+                        
                         $listing['mapped_page'] = [
                             'ID' => $page->ID,
                             'title' => $page->post_title,
@@ -88,6 +91,11 @@ function guesty_all_properties_ajax() {
                         // Add the main image to the listing data
                         if ($main_image) {
                             $listing['main_image'] = $main_image;
+                        }
+                        
+                        // Add pricing information
+                        if ($price_info) {
+                            $listing['price_info'] = $price_info;
                         }
                         
                         // Only add to results if it has a valid mapping
@@ -107,4 +115,50 @@ function guesty_all_properties_ajax() {
     }
 
     wp_send_json_success(['properties' => ['results' => $all_results]]);
+}
+
+/**
+ * Get property pricing for the given dates
+ */
+function guesty_get_property_price($listing_id, $checkin, $checkout, $token) {
+    if (!$token || !$listing_id || !$checkin || !$checkout) {
+        return null;
+    }
+    
+    $response = wp_remote_post('https://booking.guesty.com/api/reservations/quotes', [
+        'headers' => [
+            'Authorization' => "Bearer $token",
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json; charset=utf-8',
+        ],
+        'body' => json_encode([
+            'guestsCount' => 1,
+            'listingId' => $listing_id,
+            'checkInDateLocalized' => $checkin,
+            'checkOutDateLocalized' => $checkout,
+        ]),
+        'timeout' => 10, // Add timeout to prevent hanging
+    ]);
+
+    if (is_wp_error($response)) {
+        return null;
+    }
+
+    $data = json_decode(wp_remote_retrieve_body($response), true);
+    
+    if (empty($data) || !isset($data['rates']) || !isset($data['rates']['ratePlans'])) {
+        return null;
+    }
+
+    $rate_plan = $data['rates']['ratePlans'][0] ?? null;
+    if (!$rate_plan || !isset($rate_plan['ratePlan']['money'])) {
+        return null;
+    }
+
+    $money = $rate_plan['ratePlan']['money'];
+    return [
+        'total' => $money['hostPayout'] ?? 0,
+        'currency' => $money['currency'] ?? 'USD',
+        'formatted' => number_format($money['hostPayout'] ?? 0, 2)
+    ];
 }
