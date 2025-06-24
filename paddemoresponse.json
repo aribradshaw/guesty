@@ -1,0 +1,198 @@
+{
+  "_id": "6859eefcefe952faaae75df3",
+  "createdAt": "2025-06-24T00:19:08.336Z",
+  "expiresAt": "2025-06-25T00:19:08.336Z",
+  "accountId": "67b50f975e080b23fd36991b",
+  "guestsCount": 1,
+  "channel": "booking_engine",
+  "source": "BE-API",
+  "unitTypeId": "67e2cebe4a9d8c003f0552ab",
+  "checkInDateLocalized": "2026-01-01",
+  "checkOutDateLocalized": "2026-01-08",
+  "rates": {
+    "ratePlans": [
+      {
+        "ratePlan": {
+          "_id": "default-rateplan-id",
+          "name": "Standard",
+          "priceAdjustment": {
+            "type": "flat",
+            "direction": "decrease",
+            "amount": 0
+          },
+          "type": "default",
+          "mealPlans": [],
+          "cancellationPolicy": null,
+          "cancellationFee": null,
+          "description": "",
+          "minNights": 0,
+          "rateStrategies": [],
+          "money": {
+            "_id": "6859eefcae64e04638efbed2",
+            "currency": "USD",
+            "fareAccommodation": 18623.7,
+            "fareAccommodationAdjusted": 18623.7,
+            "fareCleaning": 825,
+            "totalFees": 825,
+            "subTotalPrice": 19448.7,
+            "hostPayout": 22162.18,
+            "hostPayoutUsd": 22162.18,
+            "totalTaxes": 2713.48,
+            "invoiceItems": [
+              {
+                "title": "Accommodation fare",
+                "amount": 18623.7,
+                "currency": "USD",
+                "type": "ACCOMMODATION_FARE",
+                "normalType": "AF"
+              },
+              {
+                "title": "Cleaning fee",
+                "amount": 825,
+                "currency": "USD",
+                "type": "CLEANING_FEE",
+                "normalType": "CF"
+              },
+              {
+                "title": "Hotel Lodging Tax",
+                "amount": 931.19,
+                "currency": "USD",
+                "type": "TAX",
+                "normalType": "TT"
+              },
+              {
+                "title": "Arizona TPT Tax",
+                "amount": 1024.3,
+                "currency": "USD",
+                "type": "TAX",
+                "normalType": "ST"
+              },
+              {
+                "title": "Maricopa TPT Tax",
+                "amount": 329.64,
+                "currency": "USD",
+                "type": "TAX",
+                "normalType": "LT"
+              },
+              {
+                "title": "Phoenix TPT Tax",
+                "amount": 428.35,
+                "currency": "USD",
+                "type": "TAX",
+                "normalType": "CT"
+              }
+            ]
+          }
+        },
+        "inquiryId": "6859eefcae64e04638efbed1",
+        "days": [
+          {
+            "date": "2026-01-01",
+            "currency": "USD",
+            "rateStrategy": 0,
+            "ratePlan": 0,
+            "minNights": 5,
+            "maxNights": 1125,
+            "basePrice": 3124,
+            "manualPrice": 4899,
+            "lengthOfStay": 0,
+            "price": 4899
+          },
+          {
+            "date": "2026-01-02",
+            "currency": "USD",
+            "rateStrategy": 0,
+            "ratePlan": 0,
+            "minNights": 5,
+            "maxNights": 1125,
+            "basePrice": 3124,
+            "manualPrice": 4899,
+            "lengthOfStay": 0,
+            "price": 4899
+          },
+          {
+            "date": "2026-01-03",
+            "currency": "USD",
+            "rateStrategy": 0,
+            "ratePlan": 0,
+            "minNights": 5,
+            "maxNights": 1125,
+            "basePrice": 3124,
+            "manualPrice": 4899,
+            "lengthOfStay": 0,
+            "price": 4899
+          },
+          {
+            "date": "2026-01-04",
+            "currency": "USD",
+            "rateStrategy": 0,
+            "ratePlan": 0,
+            "minNights": 4,
+            "maxNights": 1125,
+            "basePrice": 3124,
+            "manualPrice": 1499,
+            "lengthOfStay": 0,
+            "price": 1499
+          },
+          {
+            "date": "2026-01-05",
+            "currency": "USD",
+            "rateStrategy": 0,
+            "ratePlan": 0,
+            "minNights": 4,
+            "maxNights": 1125,
+            "basePrice": 3124,
+            "manualPrice": 1499,
+            "lengthOfStay": 0,
+            "price": 1499
+          },
+          {
+            "date": "2026-01-06",
+            "currency": "USD",
+            "rateStrategy": 0,
+            "ratePlan": 0,
+            "minNights": 4,
+            "maxNights": 1125,
+            "basePrice": 3124,
+            "manualPrice": 1499,
+            "lengthOfStay": 0,
+            "price": 1499
+          },
+          {
+            "date": "2026-01-07",
+            "currency": "USD",
+            "rateStrategy": 0,
+            "ratePlan": 0,
+            "minNights": 4,
+            "maxNights": 1125,
+            "basePrice": 3124,
+            "manualPrice": 1499,
+            "lengthOfStay": 0,
+            "price": 1499
+          }
+        ]
+      }
+    ]
+  },
+  "coupons": [],
+  "numberOfGuests": {
+    "numberOfAdults": 1
+  },
+  "stay": [
+    {
+      "checkInDateLocalized": "2026-01-01",
+      "checkOutDateLocalized": "2026-01-08",
+      "guestsCount": 1,
+      "numberOfGuests": {
+        "numberOfAdults": 1
+      },
+      "unitTypeId": "67e2cebe4a9d8c003f0552ab",
+      "unitId": "67e2cebe4a9d8c003f0552ab",
+      "eta": "2026-01-01T16:00:00.000Z",
+      "etd": "2026-01-08T10:00:00.000Z"
+    }
+  ],
+  "__v": 0,
+  "status": "valid",
+  "promotions": {}
+}
