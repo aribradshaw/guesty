@@ -3,7 +3,6 @@
 
 // Shortcode for displaying the map
 function guesty_map_shortcode($atts) {
-    error_log('Guesty Map Shortcode executed.');
     return '
         <!-- Guesty Listing Map Section -->
         <div id="guesty-map" style="height: 400px; margin-top: 20px;">Loading map...</div>

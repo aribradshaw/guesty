@@ -3,7 +3,6 @@
 
 // Shortcode for displaying reviews
 function guesty_reviews_shortcode($atts) {
-    error_log('Guesty Reviews Shortcode executed.');
     return '<div id="guesty-reviews">Loading reviews...</div>';
 }
 add_shortcode('guesty_reviews', 'guesty_reviews_shortcode');

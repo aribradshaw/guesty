@@ -3,11 +3,9 @@ window.addEventListener('DOMContentLoaded', function () {
     const reviewsDiv = $('#guesty-reviews');
     const listingDiv = $('#guesty-listing-id');
     const listingId = listingDiv.data('listing-id');
-    console.log('[Guesty Reviews] listingDiv:', listingDiv.length, 'listingId:', listingId);
 
     if (!listingId) {
         reviewsDiv.text('No listing ID found on the page.');
-        console.error('[Guesty Reviews] No listing ID found on the page.');
         return;
     }
 
@@ -18,10 +16,8 @@ window.addEventListener('DOMContentLoaded', function () {
             data: {
                 action: 'fetch_guesty_reviews',
                 listing_id: listingId,
-                token_set: window.guestyTokenSet || 0
-            },
+                token_set: window.guestyTokenSet || 0            },
             success: function (response) {
-                console.log('[Guesty Reviews] AJAX response:', response);
                 if (response.data && response.data.debug) {
                 }
                 if (response.success) {
@@ -31,10 +27,8 @@ window.addEventListener('DOMContentLoaded', function () {
                     renderReviews(response.data.reviews);
                 } else {
                     reviewsDiv.text(response.data.message || 'Error loading reviews.');
-                }
-            },
+                }            },
             error: function (xhr, status, error) {
-                console.error('[Guesty Reviews] AJAX error:', status, error, xhr);
                 reviewsDiv.text('Error loading reviews.');
             }
         });

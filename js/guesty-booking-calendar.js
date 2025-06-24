@@ -1,6 +1,3 @@
-// Debug: Verify script loads
-console.log('[DEBUG] guesty-booking-calendar.js file loaded');
-
 window.addEventListener('DOMContentLoaded', function () {
     var $ = jQuery;
 
@@ -132,9 +129,7 @@ window.addEventListener('DOMContentLoaded', function () {
             });
             try {
                 controls.parentNode.insertBefore(daysRow, grid);
-                return true;
-            } catch (error) {
-                console.error('Error inserting calendar header:', error);
+                return true;            } catch (error) {
                 return false;
             }
         }, 50);
@@ -146,19 +141,13 @@ window.addEventListener('DOMContentLoaded', function () {
     const currentMonthSpan = $('#current-month');
     const prevMonthButton = $('#prev-month');
     const nextMonthButton = $('#next-month');
-    const quoteDiv = $('<div id="quote-details" style="margin-top: 20px;"></div>').insertAfter(calendarDiv);
-
-    let currentDate = new Date(); // Start with the current date
+    const quoteDiv = $('<div id="quote-details" style="margin-top: 20px;"></div>').insertAfter(calendarDiv);    let currentDate = new Date(); // Start with the current date
     const listingDiv = $('#guesty-listing-id');
     const listingId = listingDiv.data('listing-id');
-    console.log('[Guesty Calendar] listingDiv:', listingDiv.length, 'listingId:', listingId);
 
     let selectedStartDate = null;
-    let selectedEndDate = null;
-
-    if (!listingId) {
+    let selectedEndDate = null;    if (!listingId) {
         calendarGrid.text('No listing ID found.');
-        console.error('[Guesty Calendar] No listing ID found on the page.');
         return;
     }
 
@@ -462,14 +451,10 @@ window.addEventListener('DOMContentLoaded', function () {
         // Add selected dates display
         const checkIn = window.selectedStartDateDisplay || '';
         const checkOut = window.selectedEndDateDisplay || '';        // Build invoice items list
-        let invoiceItemsHtml = '';
-        if (money.invoiceItems && Array.isArray(money.invoiceItems)) {
-            console.log('Invoice items found:', money.invoiceItems);
+        let invoiceItemsHtml = '';        if (money.invoiceItems && Array.isArray(money.invoiceItems)) {
             money.invoiceItems.forEach(item => {
                 invoiceItemsHtml += `<li><strong>${item.title}:</strong> ${formatCurrency(item.amount)}</li>`;
             });
-        } else {
-            console.log('No invoice items found in quote data:', money);
         }
 
         // Display the breakdown and total
