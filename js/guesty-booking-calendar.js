@@ -233,12 +233,17 @@ window.addEventListener('DOMContentLoaded', function () {
             const dayData = data.find((d) => d.date === formattedDate);
 
             let cellClass = 'calendar-cell';
-            let cellContent = day;
-
-            // Add price for this day, if available
+            let cellContent = day;            // Add price for this day, if available
             let priceHtml = '';
             if (dayData && dayData.price) {
                 priceHtml = `<div class="calendar-price">$${dayData.price}</div>`;
+            }
+
+            // Add minimum nights indicator
+            let minNightsHtml = '';
+            if (dayData && dayData.minNights && dayData.minNights > 1) {
+                minNightsHtml = `<div class="min-nights">${dayData.minNights}n min</div>`;
+                cellClass += ' has-min-nights';
             }
 
             // --- Half Day (Departure Day) Logic ---
@@ -271,12 +276,11 @@ window.addEventListener('DOMContentLoaded', function () {
                 }
             } else {
                 cellClass += ' unavailable'; // Default to unavailable if no data
-            }
-
-            // Render day number and price (if any)
-            const cell = $(`<div class="${cellClass}" data-date="${formattedDate}">
-                <div>${cellContent}</div>
+            }            // Render day number, price, and min nights
+            const cell = $(`<div class="${cellClass}" data-date="${formattedDate}" data-min-nights="${dayData?.minNights || 1}">
+                <div class="day-number">${cellContent}</div>
                 ${priceHtml}
+                ${minNightsHtml}
             </div>`);
             calendarGrid.append(cell);
 
@@ -316,11 +320,12 @@ window.addEventListener('DOMContentLoaded', function () {
                 alert('End date must be after the start date.');
                 resetSelection();
                 return;
-            }
-
-            const diffInDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
-            if (diffInDays < 2) {
-                alert('Minimum stay is 2 nights.');
+            }            const diffInDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+            
+            // Check minimum nights requirement for the start date
+            const startDateMinNights = parseInt($(`.calendar-cell[data-date="${selectedStartDate}"]`).data('min-nights') || 1);
+            if (diffInDays < startDateMinNights) {
+                alert(`Minimum stay is ${startDateMinNights} night${startDateMinNights > 1 ? 's' : ''} for this check-in date.`);
                 resetSelection();
                 return;
             }
@@ -350,23 +355,38 @@ window.addEventListener('DOMContentLoaded', function () {
             highlightDateRange(startDate, endDate);
             requestQuote(selectedStartDate, selectedEndDate);
         }
-    };
-
-    // Highlight the selected date range
+    };    // Highlight the selected date range
     const highlightDateRange = (startDate, endDate) => {
         $('.calendar-cell').each(function () {
             const cellDate = new Date($(this).data('date'));
-            if (cellDate >= startDate && cellDate <= endDate) {
+            if (cellDate > startDate && cellDate < endDate) {
+                // Only middle dates get selected-range class
                 $(this).addClass('selected-range');
-                // If this is a departure-day-half, also add a class for selected
-                if ($(this).hasClass('departure-day-half')) {
-                    $(this).addClass('selected-halfday');
-                }
+                // Force style update by triggering a reflow
+                $(this)[0].offsetHeight;
+            }
+        });// Start and end dates get their specific classes (not selected-range)
+        const startCell = $(`.calendar-cell[data-date="${formatDate(startDate)}"]`);
+        const endCell = $(`.calendar-cell[data-date="${formatDate(endDate)}"]`);
+        
+        startCell.addClass('selected-start');
+        endCell.addClass('selected-end');
+        
+        // Force DOM reflow and style recalculation
+        setTimeout(() => {
+            startCell[0].offsetHeight;
+            endCell[0].offsetHeight;
+            // Force repaint by toggling a harmless style
+            startCell.css('transform', 'translateZ(0)');
+            endCell.css('transform', 'translateZ(0)');
+        }, 10);
+        
+        // Handle half-day departures
+        $(`.calendar-cell[data-date="${formatDate(endDate)}"]`).each(function() {
+            if ($(this).hasClass('departure-day-half')) {
+                $(this).addClass('selected-halfday');
             }
         });
-
-        $(`.calendar-cell[data-date="${formatDate(startDate)}"]`).addClass('selected-start');
-        $(`.calendar-cell[data-date="${formatDate(endDate)}"]`).addClass('selected-end');
     };
 
     // Reset the selection

@@ -57,12 +57,55 @@
     align-items: center;
     justify-content: center;
     padding: 10px;
-    border: 1px solid #CBB08F; /* Secondary color */
+    border: 1px solid transparent; /* Default transparent border */
     text-align: center;
     cursor: pointer;
     border-radius: 5px;
     font-size: 14px;
     transition: background 0.2s, color 0.2s;
+    position: relative;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.calendar-cell .day-number {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.calendar-cell .calendar-price {
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 1px;
+}
+
+.calendar-cell .min-nights {
+    font-size: 9px;
+    color: inherit; /* Inherit the same color as the parent cell text */
+    font-weight: bold;
+    background: rgba(194, 156, 116, 0.1);
+    padding: 1px 3px;
+    border-radius: 3px;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.calendar-cell.has-min-nights {
+    border-left: 3px solid #C29C74;
+}
+
+.calendar-cell.has-min-nights.available {
+    background: linear-gradient(135deg, #CCFFCC 0%, #E8F5E8 100%);
+}
+
+/* Selected Range - MUST override has-min-nights gradient */
+.calendar-cell.selected-range,
+.calendar-cell.available.selected-range,
+.calendar-cell.has-min-nights.available.selected-range {
+    background: #B3D9FF !important; /* Light blue for range - override gradient */
+    color: #111111 !important; /* Dark text color */
+    border: 1px solid #0073AA !important; /* Blue border */
 }
 
 /* Past Dates */
@@ -70,20 +113,23 @@
     background-color: #F3EDE6; /* Accent color */
     color: #999999;
     cursor: not-allowed;
+    border: 1px solid #D4C5B5; /* Darker beige border */
 }
 
 /* Booked Dates */
 .calendar-cell.booked {
     background-color: #FFCCCC; /* Light red */
-    color: #FFFFFF;
+    color: #666666; /* Dark gray text instead of white */
     cursor: not-allowed;
+    border: 1px solid #FF9999; /* Darker red border */
 }
 
 /* Unavailable Dates */
 .calendar-cell.unavailable {
     background-color: #FFE6E6; /* Pale red */
-    color: #999999;
+    color: #666666; /* Dark gray text instead of light gray */
     cursor: not-allowed;
+    border: 1px solid #FFCCCC; /* Darker pink border */
 }
 
 /* Available Dates */
@@ -91,6 +137,7 @@
     background-color: #CCFFCC; /* Light green */
     color: #111111; /* Text color */
     cursor: pointer;
+    border: 1px solid #99FF99; /* Darker green border */
 }
 
 /* Empty Cells */
@@ -100,27 +147,26 @@
     cursor: default;
 }
 
-/* Selected Start Date */
-.calendar-cell.selected-start {
-    background-color: #0073AA; /* Bold blue for start date */
-    color: #FFFFFF; /* White text */
-    font-weight: bold;
-    border: 2px solid #005F8D; /* Darker blue border */
+/* Selected Start Date (higher specificity to override range styling) */
+.calendar-cell.selected-range.selected-start,
+.calendar-cell.selected-start,
+.calendar-cell.has-min-nights.available.selected-start,
+.calendar-cell.has-min-nights.available.selected-range.selected-start {
+    background: #0073AA !important; /* Bold blue background - override gradient */
+    color: #FFFFFF !important; /* White text for contrast on dark blue */
+    font-weight: bold !important;
+    border: 2px solid #005F8D !important; /* Darker blue border */
 }
 
-/* Selected End Date */
-.calendar-cell.selected-end {
-    background-color: #005F8D; /* Darker blue for end date */
-    color: #FFFFFF; /* White text */
-    font-weight: bold;
-    border: 2px solid #003F5C; /* Even darker blue border */
-}
-
-/* Selected Range */
-.calendar-cell.selected-range {
-    background-color: #B3D9FF; /* Light blue for range */
-    color: #111111; /* Text color */
-    border: 1px solid #0073AA; /* Blue border */
+/* Selected End Date (higher specificity to override range styling) */
+.calendar-cell.selected-range.selected-end,
+.calendar-cell.selected-end,
+.calendar-cell.has-min-nights.available.selected-end,
+.calendar-cell.has-min-nights.available.selected-range.selected-end {
+    background: #0073AA !important; /* Same blue background as start - override gradient */
+    color: #FFFFFF !important; /* White text for contrast on dark blue */
+    font-weight: bold !important;
+    border: 2px solid #005F8D !important; /* Darker blue border */
 }
 
 /* Book Now Button */
@@ -213,5 +259,21 @@
     }
     100% {
         transform: rotate(360deg);
+    }
+}
+
+/* Responsive adjustments for smaller cells */
+@media (max-width: 600px) {
+    .calendar-cell {
+        height: 55px;
+        font-size: 12px;
+    }
+    
+    .calendar-cell .min-nights {
+        font-size: 8px;
+    }
+    
+    .calendar-cell .calendar-price {
+        font-size: 10px;
     }
 }
