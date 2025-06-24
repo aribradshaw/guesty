@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MannaGuesty by The Manna Agency and Flygon LC
  * Description: Securely handles Guesty API bearer token and exposes it to front-end JavaScript. Allows various Guesty API shortcode calls.
- * Version: 2.7 - Removal of Debug Code
+ * Version: 2.8 - Details of Quotes, Stronger Property Search
  * Author: Ari Daniel Bradshaw - Flygon LC & Dan Park - The Manna Agency
  */
 
@@ -55,21 +55,21 @@ add_action('wp_enqueue_scripts', function () {
 });
 
 add_action('wp_enqueue_scripts', function () {    // Register (but don't enqueue) the JavaScript file for the booking calendar
-    wp_register_script('guesty-booking-calendar-script', plugin_dir_url(__FILE__) . 'js/guesty-booking-calendar.js', ['jquery'], '1.8', true);
+    wp_register_script('guesty-booking-calendar-script', plugin_dir_url(__FILE__) . 'js/guesty-booking-calendar.js', ['jquery'], '2.2', true);
     wp_localize_script('guesty-booking-calendar-script', 'guestyBookingAjax', [
         'ajax_url' => admin_url('admin-ajax.php'),
     ]);    // Register (but don't enqueue) the CSS file for the booking calendar
-    wp_register_style('guesty-booking-calendar-style', plugin_dir_url(__FILE__) . 'css/guesty-booking-calendar.css', [], '2.1');
+    wp_register_style('guesty-booking-calendar-style', plugin_dir_url(__FILE__) . 'css/guesty-booking-calendar.css', [], '2.3');
 });
 
 add_action('wp_enqueue_scripts', function () {
     // Register and enqueue the JS and CSS for all properties
-    wp_register_script('guesty-all-properties-script', plugin_dir_url(__FILE__) . 'js/guesty-all-properties.js', ['jquery'], '1.0', true);
+    wp_register_script('guesty-all-properties-script', plugin_dir_url(__FILE__) . 'js/guesty-all-properties.js', ['jquery'], '1.4', true);
     wp_localize_script('guesty-all-properties-script', 'guestyBookingAjax', [
         'ajax_url' => admin_url('admin-ajax.php'),
     ]);
     wp_enqueue_script('guesty-all-properties-script');
-    wp_enqueue_style('guesty-all-properties-style', plugin_dir_url(__FILE__) . 'css/guesty-all-properties.css', [], '1.0');
+    wp_enqueue_style('guesty-all-properties-style', plugin_dir_url(__FILE__) . 'css/guesty-all-properties.css', [], '1.6');
 });
 
 function guesty_get_bearer_token($client_id, $client_secret) {

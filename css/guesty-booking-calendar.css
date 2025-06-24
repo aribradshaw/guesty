@@ -266,8 +266,7 @@
 @media (max-width: 600px) {
     .calendar-cell {
         height: 55px;
-        font-size: 12px;
-    }
+        font-size: 12px;    }
     
     .calendar-cell .min-nights {
         font-size: 8px;
@@ -276,4 +275,53 @@
     .calendar-cell .calendar-price {
         font-size: 10px;
     }
+}
+
+/* Collapsible quote details */
+.quote-details-container {
+    margin: 15px 0 0 0;
+}
+
+.quote-details-toggle {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 14px;
+    font-weight: normal;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.quote-details-toggle:hover {
+    color: #666;
+}
+
+.toggle-arrow {
+    text-decoration: none;
+    font-size: 12px;
+    transition: transform 0.2s ease;
+    display: inline-block;
+}
+
+.quote-details-breakdown {
+    margin: 10px 0;
+    padding-left: 20px;
+    color: #666;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.quote-details-breakdown li {
+    margin: 5px 0;
+    line-height: 1.4;
+}
+
+.quote-details-breakdown strong {
+    font-weight: 500;
 }
