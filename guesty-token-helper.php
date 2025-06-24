@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MannaGuesty by The Manna Agency and Flygon LC
  * Description: Securely handles Guesty API bearer token and exposes it to front-end JavaScript. Allows various Guesty API shortcode calls.
- * Version: 2.8 - Details of Quotes, Stronger Property Search
+ * Version: 2.9 - Custom Icons
  * Author: Ari Daniel Bradshaw - Flygon LC & Dan Park - The Manna Agency
  */
 
@@ -64,12 +64,12 @@ add_action('wp_enqueue_scripts', function () {    // Register (but don't enqueue
 
 add_action('wp_enqueue_scripts', function () {
     // Register and enqueue the JS and CSS for all properties
-    wp_register_script('guesty-all-properties-script', plugin_dir_url(__FILE__) . 'js/guesty-all-properties.js', ['jquery'], '1.7', true);
-    wp_localize_script('guesty-all-properties-script', 'guestyBookingAjax', [
+    wp_register_script('guesty-all-properties-script', plugin_dir_url(__FILE__) . 'js/guesty-all-properties.js', ['jquery'], '2.1', true);    wp_localize_script('guesty-all-properties-script', 'guestyBookingAjax', [
         'ajax_url' => admin_url('admin-ajax.php'),
+        'plugin_url' => content_url('plugins/')
     ]);
     wp_enqueue_script('guesty-all-properties-script');
-    wp_enqueue_style('guesty-all-properties-style', plugin_dir_url(__FILE__) . 'css/guesty-all-properties.css', [], '1.9');
+    wp_enqueue_style('guesty-all-properties-style', plugin_dir_url(__FILE__) . 'css/guesty-all-properties.css', [], '2.1');
 });
 
 function guesty_get_bearer_token($client_id, $client_secret) {
@@ -172,10 +172,10 @@ function fetch_guesty_attributes() {
 
     // Generate the HTML for attributes dynamically
     $attributes = [
-        'bedrooms'     => '🛏️ Bedrooms',
-        'bathrooms'    => '🛁 Bathrooms',
-        'accommodates' => '👥 Accommodates',
-        'beds'         => '🛌 Beds',
+        'bedrooms'     => '<img src="' . plugin_dir_url(__FILE__) . 'svg/bed.svg" alt="Bedrooms" style="width:1em;height:1em;vertical-align:middle;"> Bedrooms',
+        'bathrooms'    => '<img src="' . plugin_dir_url(__FILE__) . 'svg/bathroom.svg" alt="Bathrooms" style="width:1em;height:1em;vertical-align:middle;"> Bathrooms',
+        'accommodates' => '<img src="' . plugin_dir_url(__FILE__) . 'svg/accomodates.svg" alt="Accommodates" style="width:1em;height:1em;vertical-align:middle;"> Accommodates',
+        'beds'         => '<img src="' . plugin_dir_url(__FILE__) . 'svg/Bed2.svg" alt="Beds" style="width:1em;height:1em;vertical-align:middle;"> Beds',
     ];
 
     $output = '<div id="guesty-property-attributes">';
