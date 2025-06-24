@@ -1,5 +1,9 @@
 // guesty-all-properties.js
 jQuery(function($) {
+    // Debug - let's see what plugin_url contains
+    console.log('Plugin URL:', guestyBookingAjax.plugin_url);
+    console.log('Full SVG URL:', guestyBookingAjax.plugin_url + 'svg/bed.svg');
+    
     // Function to get URL parameters
     function getUrlParameter(name) {
         const urlParams = new URLSearchParams(window.location.search);
@@ -58,11 +62,16 @@ jQuery(function($) {
                             html += `<a href="${link}"><strong>${title}</strong></a>`;
                         } else {
                             html += `<strong>${title}</strong>`;
-                        }
-                        html += `<div class="property-amenities">`;
-                        html += `<span class="amenity"><span class="icon">🛏️</span> ${p.bedrooms || '-'}</span>`;
-                        html += `<span class="amenity"><span class="icon">🛁</span> ${p.bathrooms || '-'}</span>`;
-                        html += `<span class="amenity"><span class="icon">👥</span> ${p.accommodates || '-'}</span>`;
+                        }                        html += `<div class="property-amenities">`;
+                        // Construct the proper plugin URL - ensure it includes the plugin directory name
+                        let pluginUrl = guestyBookingAjax.plugin_url;
+                        if (!pluginUrl.includes('MannaPress')) {
+                            pluginUrl = pluginUrl.endsWith('/') ? pluginUrl + 'MannaPress%20Guesty/' : pluginUrl + '/MannaPress%20Guesty/';
+                        } else {
+                            pluginUrl = pluginUrl.endsWith('/') ? pluginUrl : pluginUrl + '/';
+                        }                        html += `<span class="amenity"><img src="${pluginUrl}svg/bed.svg" class="icon" alt="Bedrooms" title="Number of bedrooms"> ${p.bedrooms || '-'}</span>`;
+                        html += `<span class="amenity"><img src="${pluginUrl}svg/bathroom.svg" class="icon" alt="Bathrooms" title="Number of bathrooms"> ${p.bathrooms || '-'}</span>`;
+                        html += `<span class="amenity"><img src="${pluginUrl}svg/accomodates.svg" class="icon" alt="Max Guests" title="Maximum number of guests"> ${p.accommodates || '-'}</span>`;
                         html += `</div>`;
                         if (p.address && p.address.formatted) {
                             html += `<div class="property-address">${p.address.formatted}</div>`;
@@ -86,24 +95,76 @@ jQuery(function($) {
             }
         });
     }
-    
-    // Load dates from URL on page load
+      // Load dates from URL on page load
     $(document).ready(function() {
+        // Set minimum date to today for check-in
+        const today = new Date().toISOString().split('T')[0];
+        $('#guesty-checkin').attr('min', today);
+        
+        // Update checkout minimum when check-in changes
+        $('#guesty-checkin').on('change', function() {
+            const checkinDate = $(this).val();
+            if (checkinDate) {
+                // Set checkout minimum to the day after check-in
+                const checkinDateObj = new Date(checkinDate);
+                checkinDateObj.setDate(checkinDateObj.getDate() + 1);
+                const minCheckout = checkinDateObj.toISOString().split('T')[0];
+                $('#guesty-checkout').attr('min', minCheckout);
+                
+                // Clear checkout if it's now invalid
+                const currentCheckout = $('#guesty-checkout').val();
+                if (currentCheckout && currentCheckout <= checkinDate) {
+                    $('#guesty-checkout').val('');
+                }
+            }
+        });
+        
+        // Validate checkout is after check-in
+        $('#guesty-checkout').on('change', function() {
+            const checkinDate = $('#guesty-checkin').val();
+            const checkoutDate = $(this).val();
+            
+            if (checkinDate && checkoutDate && checkoutDate <= checkinDate) {
+                alert('Check-out date must be after check-in date.');
+                $(this).val('');
+                return;
+            }
+        });
+        
         const urlCheckin = getUrlParameter('checkin');
         const urlCheckout = getUrlParameter('checkout');
         
         if (urlCheckin && urlCheckout) {
             $('#guesty-checkin').val(urlCheckin);
             $('#guesty-checkout').val(urlCheckout);
+            // Trigger change event to set proper minimums
+            $('#guesty-checkin').trigger('change');
             performSearch(urlCheckin, urlCheckout);
         }
     });
-    
-    // Handle form submission
+      // Handle form submission
     $('#guesty-all-properties-form').on('submit', function(e) {
         e.preventDefault();
         const checkin = $('#guesty-checkin').val();
         const checkout = $('#guesty-checkout').val();
+        
+        // Validate dates
+        if (!checkin || !checkout) {
+            alert('Please select both check-in and check-out dates.');
+            return;
+        }
+        
+        const today = new Date().toISOString().split('T')[0];
+        if (checkin < today) {
+            alert('Check-in date cannot be in the past.');
+            return;
+        }
+        
+        if (checkout <= checkin) {
+            alert('Check-out date must be after check-in date.');
+            return;
+        }
+        
         performSearch(checkin, checkout);
     });
 });
