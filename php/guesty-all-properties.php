@@ -72,13 +72,24 @@ function guesty_all_properties_ajax() {
                 $lid = $listing['_id']; // Use _id instead of id to match the mapping
                 if (isset($listing_page_map[$lid]) && $listing_page_map[$lid]) {
                     $page_id = $listing_page_map[$lid];
-                    $page = get_post($page_id);
-                    if ($page && $page->post_status === 'publish') {
+                    $page = get_post($page_id);                    if ($page && $page->post_status === 'publish') {
+                        // Get the main property image
+                        $main_image = null;
+                        if (isset($listing['pictures']) && is_array($listing['pictures']) && !empty($listing['pictures'])) {
+                            $main_image = $listing['pictures'][0]['thumbnail'] ?? $listing['pictures'][0]['url'] ?? null;
+                        }
+                        
                         $listing['mapped_page'] = [
                             'ID' => $page->ID,
                             'title' => $page->post_title,
                             'url' => get_permalink($page->ID)
                         ];
+                        
+                        // Add the main image to the listing data
+                        if ($main_image) {
+                            $listing['main_image'] = $main_image;
+                        }
+                        
                         // Only add to results if it has a valid mapping
                         $all_results[] = $listing;
                     }

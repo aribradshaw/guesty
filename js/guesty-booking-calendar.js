@@ -450,22 +450,49 @@ window.addEventListener('DOMContentLoaded', function () {
 
         // Add selected dates display
         const checkIn = window.selectedStartDateDisplay || '';
-        const checkOut = window.selectedEndDateDisplay || '';        // Build invoice items list
-        let invoiceItemsHtml = '';        if (money.invoiceItems && Array.isArray(money.invoiceItems)) {
+        const checkOut = window.selectedEndDateDisplay || '';
+
+        // Build invoice items list
+        let invoiceItemsHtml = '';
+        if (money.invoiceItems && Array.isArray(money.invoiceItems)) {
             money.invoiceItems.forEach(item => {
                 invoiceItemsHtml += `<li><strong>${item.title}:</strong> ${formatCurrency(item.amount)}</li>`;
             });
         }
 
-        // Display the breakdown and total
+        // Clear existing content and event handlers to prevent duplication
+        quoteDiv.off().empty();        // Display the breakdown and total
         quoteDiv.html(`
             <h3>Quote Details</h3>
             <div><strong>Check-in:</strong> ${checkIn} &nbsp; <strong>Check-out:</strong> ${checkOut}</div>
-            <ul>
-                ${invoiceItemsHtml}
-            </ul>
             <p><strong>Total Cost:</strong> ${formatCurrency(hostPayout)}</p>
+            <div class="quote-details-container">
+                <button class="quote-details-toggle" type="button">
+                    <span class="toggle-arrow">▼</span>
+                    <span class="toggle-text">see details</span>
+                </button>
+                <ul class="quote-details-breakdown" style="display: none;">
+                    ${invoiceItemsHtml}
+                </ul>
+            </div>
         `);
+
+        // Add click handler for the details toggle
+        quoteDiv.find('.quote-details-toggle').on('click', function() {
+            const breakdown = quoteDiv.find('.quote-details-breakdown');
+            const arrow = $(this).find('.toggle-arrow');
+            const text = $(this).find('.toggle-text');
+            
+            if (breakdown.is(':visible')) {
+                breakdown.slideUp(200);
+                text.text('see details');
+                arrow.text('▼');
+            } else {
+                breakdown.slideDown(200);
+                text.text('hide details');
+                arrow.text('▲');
+            }
+        });
 
         $(document).trigger('guesty_quote_ready', [{
             total: hostPayout,
