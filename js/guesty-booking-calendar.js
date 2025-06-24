@@ -422,9 +422,7 @@ window.addEventListener('DOMContentLoaded', function () {
                 quoteDiv.html('<p>An error occurred while fetching the quote. Please try again.</p>');
             },
         });
-    };
-
-    // Display the quote details
+    };    // Display the quote details
     const displayQuoteDetails = (quote) => {
         if (!quote || !quote.rates || !quote.rates.ratePlans) {
             quoteDiv.html('<p>No quote details available.</p>');
@@ -434,30 +432,32 @@ window.addEventListener('DOMContentLoaded', function () {
         const ratePlan = quote.rates.ratePlans[0];
         const money = ratePlan.ratePlan.money;
 
-        // Extract the required values
-        const fareAccommodation = money.fareAccommodation; // fare accommodation
-        const fareCleaning = money.fareCleaning; // Convert cents to dollars
-        const totalFees = money.totalFees; // Convert cents to dollars
-        const totalTaxes = money.totalTaxes; // Convert cents to dollars
-        const baseFee = totalFees - fareCleaning; // Base fee (total fees minus cleaning fee)
-        const hostPayout = money.hostPayout; // Host payout (already in dollars)
+        // Get the total cost
+        const hostPayout = money.hostPayout;
+        const currency = money.currency;
 
-        // Format numbers with commas
-        const formatCurrency = (value) => value.toLocaleString('en-US', { style: 'currency', currency: money.currency });
+        // Format currency
+        const formatCurrency = (value) => value.toLocaleString('en-US', { style: 'currency', currency: currency });
 
         // Add selected dates display
         const checkIn = window.selectedStartDateDisplay || '';
-        const checkOut = window.selectedEndDateDisplay || '';
+        const checkOut = window.selectedEndDateDisplay || '';        // Build invoice items list
+        let invoiceItemsHtml = '';
+        if (money.invoiceItems && Array.isArray(money.invoiceItems)) {
+            console.log('Invoice items found:', money.invoiceItems);
+            money.invoiceItems.forEach(item => {
+                invoiceItemsHtml += `<li><strong>${item.title}:</strong> ${formatCurrency(item.amount)}</li>`;
+            });
+        } else {
+            console.log('No invoice items found in quote data:', money);
+        }
 
         // Display the breakdown and total
         quoteDiv.html(`
             <h3>Quote Details</h3>
             <div><strong>Check-in:</strong> ${checkIn} &nbsp; <strong>Check-out:</strong> ${checkOut}</div>
             <ul>
-                <li><strong>Nightly Accommodation Cost:</strong> ${formatCurrency(fareAccommodation)}</li>
-                <li><strong>HÓZHÓ Fee:</strong> ${formatCurrency(baseFee)}</li>
-                <li><strong>Cleaning:</strong> ${formatCurrency(fareCleaning)}</li>
-                <li><strong>Taxes:</strong> ${formatCurrency(totalTaxes)}</li>
+                ${invoiceItemsHtml}
             </ul>
             <p><strong>Total Cost:</strong> ${formatCurrency(hostPayout)}</p>
         `);
