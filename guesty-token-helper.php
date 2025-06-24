@@ -64,12 +64,12 @@ add_action('wp_enqueue_scripts', function () {    // Register (but don't enqueue
 
 add_action('wp_enqueue_scripts', function () {
     // Register and enqueue the JS and CSS for all properties
-    wp_register_script('guesty-all-properties-script', plugin_dir_url(__FILE__) . 'js/guesty-all-properties.js', ['jquery'], '1.4', true);
+    wp_register_script('guesty-all-properties-script', plugin_dir_url(__FILE__) . 'js/guesty-all-properties.js', ['jquery'], '1.7', true);
     wp_localize_script('guesty-all-properties-script', 'guestyBookingAjax', [
         'ajax_url' => admin_url('admin-ajax.php'),
     ]);
     wp_enqueue_script('guesty-all-properties-script');
-    wp_enqueue_style('guesty-all-properties-style', plugin_dir_url(__FILE__) . 'css/guesty-all-properties.css', [], '1.6');
+    wp_enqueue_style('guesty-all-properties-style', plugin_dir_url(__FILE__) . 'css/guesty-all-properties.css', [], '1.9');
 });
 
 function guesty_get_bearer_token($client_id, $client_secret) {
