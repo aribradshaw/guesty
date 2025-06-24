@@ -1,0 +1,5 @@
+# Exclude JSON files in root directory only
+/*.json
+
+# Exclude todo file
+hozhotodo.md
