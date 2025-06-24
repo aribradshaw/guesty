@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MannaGuesty by The Manna Agency and Flygon LC
  * Description: Securely handles Guesty API bearer token and exposes it to front-end JavaScript. Allows various Guesty API shortcode calls.
- * Version: 2.6 - Night Minimums and Calendar Coloring
+ * Version: 2.7 - Removal of Debug Code
  * Author: Ari Daniel Bradshaw - Flygon LC & Dan Park - The Manna Agency
  */
 
@@ -254,25 +254,14 @@ function request_guesty_quote() {
 
     if (is_wp_error($response)) {
         wp_send_json_error(['message' => 'Error communicating with Guesty API.', 'error' => $response->get_error_message()]);
-    }
-
-    $data = json_decode(wp_remote_retrieve_body($response), true);
-
-    $debug = [
-        'raw_response' => $data,
-        'listing_id' => $listing_id,
-        'check_in_date' => $check_in_date,
-        'check_out_date' => $check_out_date,
-        'guests_count' => $guests_count,
-        'token_set' => $token_set,
-    ];
+    }    $data = json_decode(wp_remote_retrieve_body($response), true);
 
     if (empty($data)) {
-        wp_send_json_error(['message' => 'No data returned from Guesty API.', 'debug' => $debug]);
+        wp_send_json_error(['message' => 'No data returned from Guesty API.', 'listing_id' => $listing_id]);
     }
 
     // Return the response from the Guesty API
-    wp_send_json_success(array_merge($data, ['debug' => $debug]));
+    wp_send_json_success($data);
 }
 
 // AJAX handler for fetching payment provider

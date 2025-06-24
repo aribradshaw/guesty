@@ -6,11 +6,7 @@ jQuery(document).ready(function ($) {
     // 1. Show guest form when quote is ready
     $(document).on('guesty_quote_ready', function (e, quoteData) {
         $('#guesty-payment-section').show();
-        $('#guesty-guest-form').show();
-        $('#guesty-payment-form').hide();
-
-        // DEBUG: See what your quoteData looks like
-        console.log('Quote Data:', quoteData);
+        $('#guesty-guest-form').show();        $('#guesty-payment-form').hide();
 
         // Try to extract listingId from all possible locations
         window.guestyListingId =
@@ -20,11 +16,7 @@ jQuery(document).ready(function ($) {
             null;
 
         const listingId = window.guestyListingId;
-        const tokenSet = window.guestyTokenSet || 0;
-
-        console.log('Listing ID for payment provider:', listingId);
-
-        // Only show error if user tries to proceed without listingId
+        const tokenSet = window.guestyTokenSet || 0;        // Only show error if user tries to proceed without listingId
         if (!listingId) {
             $('#guesty-payment-section').hide();
             $('#guesty-payment-message').html('Could not determine listing ID. Please contact support.');
@@ -39,12 +31,9 @@ jQuery(document).ready(function ($) {
             listing_id: listingId,
             token_set: tokenSet
         }, function(response) {
-            if (response.success) {
-                window.guestyPaymentProviderId = response.data.provider_id;
-                console.log('Provider ID:', window.guestyPaymentProviderId);
+            if (response.success) {                window.guestyPaymentProviderId = response.data.provider_id;
             } else {
                 $('#guesty-payment-message').html('Could not fetch payment provider. Please contact support.');
-                console.error(response);
             }
         });
     });
@@ -67,12 +56,7 @@ jQuery(document).ready(function ($) {
                 country: $('#guest-country').val(),
                 postal_code: $('#guest-postal-code').val()
             }
-        };
-
-        // Debug: Check providerId
-        console.log('Provider ID:', window.guestyPaymentProviderId);
-
-        try {
+        };        try {
             if (!window.guestyTokenization) {
                 $('#guesty-payment-message').html('Payment system not loaded. Please refresh.');
                 return;
@@ -84,10 +68,8 @@ jQuery(document).ready(function ($) {
             await window.guestyTokenization.render({
                 containerId: "guesty-tokenization-container",
                 providerId: window.guestyPaymentProviderId
-            });
-        } catch (err) {
+            });        } catch (err) {
             $('#guesty-payment-message').html('Failed to load payment form.');
-            console.error(err);
         }
     });
 

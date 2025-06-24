@@ -1,9 +1,6 @@
 <?php
 // filepath: /C:/Users/Owner/Documents/Flygon Lc/WordPress Plugins/MannaPress Guesty/guesty-admin-page.php
 
-// Debugging: Log a message to confirm the file is loaded
-error_log('Guesty Admin Page file loaded.');
-
 // Add a menu item to the WordPress admin sidebar
 add_action('admin_menu', function () {
     add_menu_page(
