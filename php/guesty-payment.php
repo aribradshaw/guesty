@@ -1,5 +1,6 @@
 <?php
 // Shortcode for Guesty Payment
+// IMPORTANT: Make sure to include the [guesty_payment] shortcode on the same page as the booking calendar for payment to work!
 function guesty_payment_shortcode($atts) {
     ob_start();
     ?>
@@ -30,7 +31,6 @@ function guesty_payment_shortcode($atts) {
         </form>
     </div>
     <script src="https://pay.guesty.com/tokenization/v2/init.js"></script>
-    <script src="<?php echo plugin_dir_url(__FILE__); ?>../js/guesty-payment.js"></script>
     <?php
     return ob_get_clean();
 }
@@ -46,7 +46,8 @@ add_action('wp_enqueue_scripts', function () {
         true
     );
     wp_enqueue_script('guesty-payment-script');
-    wp_localize_script('guesty-payment-script', 'guestyPaymentAjax', [
+    // FIX: Use the same object name as in JS (guestyAjax)
+    wp_localize_script('guesty-payment-script', 'guestyAjax', [
         'ajax_url' => admin_url('admin-ajax.php'),
     ]);
 });

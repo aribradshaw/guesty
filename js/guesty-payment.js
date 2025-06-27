@@ -1,10 +1,21 @@
+// Add this at the very top to confirm JS is loaded
+console.log('[guesty-payment.js] Loaded');
+
+if (typeof jQuery === 'undefined') {
+    console.error('[guesty-payment.js] jQuery is not loaded!');
+}
+
 jQuery(document).ready(function ($) {
+    if (!$('#guesty-payment-section').length) {
+        console.warn('[guesty-payment.js] #guesty-payment-section not found in DOM. Is the [guesty_payment] shortcode present on this page?');
+    }
     $('#guesty-payment-section').hide();
     $('#guesty-guest-form').hide();
     $('#guesty-payment-form').hide();
 
     // 1. Show guest form when quote is ready
     $(document).on('guesty_quote_ready', function (e, quoteData) {
+        console.log('[guesty-payment.js] guesty_quote_ready event received', quoteData);
         $('#guesty-payment-section').show();
         $('#guesty-guest-form').show();        $('#guesty-payment-form').hide();
 
