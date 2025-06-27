@@ -390,9 +390,11 @@ window.addEventListener('DOMContentLoaded', function () {
 
     // Request a quote from the WordPress proxy
     const requestQuote = (startDate, endDate) => {
+        console.debug('[guesty-booking-calendar] requestQuote called', { startDate, endDate });
         const start = new Date(startDate);
         const end = new Date(endDate);
         if (start < minDate || end > maxDate) {
+            console.warn('[guesty-booking-calendar] Selected dates out of range', { start, end, minDate, maxDate });
             quoteDiv.html('<p>Selected dates are outside the allowed booking range.</p>');
             return;
         }
@@ -406,6 +408,7 @@ window.addEventListener('DOMContentLoaded', function () {
             token_set: window.guestyTokenSet || 0 // <-- ADD THIS LINE
         };
 
+        console.debug('[guesty-booking-calendar] Sending AJAX for quote', requestData);
         // Send the POST request to the WordPress proxy
         $('#guesty-quote-spinner').show(); // Show spinner
         $('#guesty-payment-section').hide(); // Hide form while loading
@@ -415,17 +418,18 @@ window.addEventListener('DOMContentLoaded', function () {
             method: 'POST',
             data: requestData,
             success: function(response) {
+                console.debug('[guesty-booking-calendar] Quote AJAX success', response);
                 $('#guesty-quote-spinner').hide(); // Hide spinner
                 $('#guesty-payment-section').show(); // Show form
                 if (response.success) {
                     displayQuoteDetails(response.data); // Pass full data
-                    // Fire the event with the full data object
-                    $(document).trigger('guesty_quote_ready', [response.data]);
                 } else {
+                    console.error('[guesty-booking-calendar] Quote AJAX error (success=false)', response);
                     quoteDiv.html('<p>An error occurred while fetching the quote. Please try again.</p>');
                 }
             },
             error: (xhr, status, error) => {
+                console.error('[guesty-booking-calendar] Quote AJAX error', { xhr, status, error });
                 $('#guesty-quote-spinner').hide(); // Hide spinner
                 $('#guesty-payment-section').show(); // Show form
                 quoteDiv.html('<p>An error occurred while fetching the quote. Please try again.</p>');
@@ -433,7 +437,9 @@ window.addEventListener('DOMContentLoaded', function () {
         });
     };    // Display the quote details
     const displayQuoteDetails = (quote) => {
+        console.debug('[guesty-booking-calendar] displayQuoteDetails called', quote);
         if (!quote || !quote.rates || !quote.rates.ratePlans) {
+            console.warn('[guesty-booking-calendar] No quote details available', quote);
             quoteDiv.html('<p>No quote details available.</p>');
             return;
         }
@@ -494,12 +500,20 @@ window.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        $(document).trigger('guesty_quote_ready', [{
+        // DEBUG: Log all relevant data before firing event
+        const eventPayload = {
             total: hostPayout,
             quote: quote,
             checkIn,
-            checkOut
-        }]);
+            checkOut,
+            listingId: listingId // <-- use the actual listingId from the calendar context
+        };
+        window.guestyQuoteId = quote?._id || null;
+        window.guestyRatePlanId = ratePlan?._id || null;
+        window.guestyQuoteData = quote;
+        console.debug('[guesty-booking-calendar] About to trigger guesty_quote_ready', eventPayload);
+        $(document).trigger('guesty_quote_ready', [eventPayload]);
+        console.log('[guesty-booking-calendar] guesty_quote_ready event triggered', eventPayload);
     };
 
     // Initial fetch: wait for guestyTokenSet to be ready
