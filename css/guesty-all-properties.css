@@ -1,78 +1,89 @@
-#guesty-all-properties { max-width: 800px; margin: 30px auto; font-family: Arial, sans-serif; }
-#guesty-all-properties-form { 
-    display: grid; 
-    grid-template-columns: 1fr 1fr auto; 
-    gap: 15px; 
-    margin-bottom: 25px; 
-    align-items: end;
+#guesty-all-properties {
+    max-width: 1000px;
+    margin: 40px auto 0 auto;
+    font-family: Arial, sans-serif;
+}
+#guesty-all-properties-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 25px;
+    align-items: flex-end;
     width: 100%;
     background: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    border: 1px solid #e0e0e0;
+    padding: 24px 18px 18px 18px;
+    border-radius: 14px;
+    border: 1.5px solid #e0e0e0;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    justify-content: center;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
 }
-#guesty-all-properties-form label { 
-    font-weight: bold; 
+#guesty-all-properties-form label {
+    font-weight: 600;
+    font-size: 18px;
+    color: #3a2c13;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 10px;
+    margin-bottom: 0;
+    min-width: 220px;
 }
-#guesty-all-properties-form input[type="date"] { 
-    padding: 10px 12px; 
-    border-radius: 6px; 
-    border: 1px solid #ccc; 
-    font-size: 16px;
-    width: 100%;
+#guesty-daterange {
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #cbb08f;
+    font-size: 17px;
+    width: 240px;
+    max-width: 100%;
     box-sizing: border-box;
+    background: #fff;
+    color: #3a2c13;
+    transition: border-color 0.2s;
 }
-#guesty-all-properties-form input[type="date"]:invalid {
-    border-color: #ffcccc;
-    background-color: #fff9f9;
+#guesty-daterange:focus {
+    border-color: #C29C74;
+    outline: none;
+    box-shadow: 0 0 0 2px #cbb08f33;
 }
-#guesty-all-properties-form input[type="date"]::-webkit-calendar-picker-indicator {
+#guesty-all-properties-form button {
+    background: #C29C74;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 32px;
+    font-size: 17px;
+    font-weight: 600;
     cursor: pointer;
+    height: 44px;
+    margin-left: 0;
+    box-shadow: 0 2px 8px rgba(194,156,116,0.08);
+    transition: background 0.2s, box-shadow 0.2s;
 }
-/* Style for dates that can't be selected (past dates) */
-#guesty-all-properties-form input[type="date"]::-webkit-datetime-edit-fields-wrapper {
-    background: transparent;
+#guesty-all-properties-form button:hover {
+    background: #B08A5E;
+    box-shadow: 0 4px 16px rgba(194,156,116,0.13);
 }
-#guesty-all-properties-form input[type="date"]::-webkit-datetime-edit-text {
-    color: #666;
+#guesty-properties-list {
+    margin-top: 10px;
 }
-#guesty-all-properties-form input[type="date"]::-webkit-datetime-edit-month-field,
-#guesty-all-properties-form input[type="date"]::-webkit-datetime-edit-day-field,
-#guesty-all-properties-form input[type="date"]::-webkit-datetime-edit-year-field {
-    color: #333;
+.guesty-properties-ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
-#guesty-all-properties-form input[type="date"]:disabled {
-    background-color: #f5f5f5;
-    color: #999;
-    border-color: #ddd;
-    cursor: not-allowed;
-}
-#guesty-all-properties-form button { 
-    background: #C29C74; 
-    color: #fff; 
-    border: none; 
-    border-radius: 6px; 
-    padding: 10px 25px; 
-    font-size: 16px; 
-    cursor: pointer;
-    height: fit-content;
-    white-space: nowrap;
-}
-#guesty-all-properties-form button:hover { background: #CBB08F; }
-#guesty-properties-list { margin-top: 10px; }
-.guesty-properties-ul { list-style: none; padding: 0; }
-.guesty-property-item { 
-    background: #f7f7f7; 
-    border: 1px solid #CBB08F; 
-    border-radius: 8px; 
-    margin-bottom: 20px; 
+.guesty-property-item {
+    background: #f7f7f7;
+    border: 1px solid #CBB08F;
+    border-radius: 8px;
+    margin-bottom: 20px;
     padding: 0;
     min-height: 140px;
     display: flex;
     overflow: hidden;
+    width: 100%; /* Ensure full width of parent container */
+    box-sizing: border-box;
 }
 .property-details {
     flex: 1;
@@ -153,10 +164,68 @@
 .property-image a:hover img {
     transform: scale(1.05);
 }
+/* Center the calendar and the arrow under the input for 3 months */
+.flatpickr-calendar.center-3-months {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    min-width: 735px; /* 3 x 245px (default month width) */
+    width: auto !important;
+}
+.flatpickr-calendar.center-3-months .arrow {
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+}
+@media (max-width: 900px) {
+    .flatpickr-calendar.center-3-months {
+        min-width: 0 !important;
+        width: 100vw !important;
+        left: 0 !important;
+        transform: none !important;
+    }
+    .flatpickr-calendar.center-3-months .arrow {
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+}
+@media (max-width: 700px) {
+    .flatpickr-calendar.center-3-months {
+        left: 0 !important;
+        transform: none !important;
+    }
+    #guesty-all-properties {
+        max-width: 100%;
+        padding: 0 4px;
+    }
+    #guesty-all-properties-form {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px 4px 10px 4px;
+        max-width: 100%;
+    }
+    #guesty-all-properties-form label, #guesty-daterange {
+        width: 100%;
+        min-width: 0;
+    }
+    #guesty-all-properties-form button {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 10px;
+    }
+}
 @media (max-width: 600px) {
     #guesty-all-properties-form {
-        grid-template-columns: 1fr;
-        gap: 15px;
+        flex-direction: column;
+        align-items: stretch;
+        padding: 18px 8px 16px 8px;
+    }
+    #guesty-all-properties-form label, #guesty-daterange {
+        width: 100%;
+        min-width: 0;
+    }
+    #guesty-all-properties-form button {
+        width: 100%;
+        margin-left: 0;
+        margin-top: 10px;
     }
     .guesty-property-item {
         flex-direction: column;

@@ -4,6 +4,48 @@ jQuery(function($) {
     console.log('Plugin URL:', guestyBookingAjax.plugin_url);
     console.log('Full SVG URL:', guestyBookingAjax.plugin_url + 'svg/bed.svg');
     
+    // Initialize Flatpickr for date range selection
+    $(document).ready(function() {
+        if (window.flatpickr) {
+            var monthsToShow = window.matchMedia('(max-width: 700px)').matches ? 1 : 3;
+            flatpickr('#guesty-daterange', {
+                mode: 'range',
+                showMonths: monthsToShow,
+                minDate: 'today',
+                dateFormat: 'Y-m-d',
+                onOpen: function(selectedDates, dateStr, instance) {
+                    // Add a class to the calendar container for custom centering (only for 3 months)
+                    setTimeout(function() {
+                        if (instance && instance.calendarContainer) {
+                            if (monthsToShow === 3) {
+                                instance.calendarContainer.classList.add('center-3-months');
+                            } else {
+                                instance.calendarContainer.classList.remove('center-3-months');
+                            }
+                        }
+                    }, 0);
+                },
+                onReady: function(selectedDates, dateStr, instance) {
+                    if (instance && instance.calendarContainer) {
+                        if (monthsToShow === 3) {
+                            instance.calendarContainer.classList.add('center-3-months');
+                        } else {
+                            instance.calendarContainer.classList.remove('center-3-months');
+                        }
+                    }
+                },
+                onChange: function(selectedDates, dateStr, instance) {
+                    if (selectedDates.length === 2) {
+                        // Automatically submit form when both dates are selected
+                        $('#guesty-all-properties-form').trigger('submit');
+                    }
+                }
+            });
+        } else {
+            console.error('Flatpickr not loaded!');
+        }
+    });
+
     // Function to get URL parameters
     function getUrlParameter(name) {
         const urlParams = new URLSearchParams(window.location.search);
@@ -106,74 +148,36 @@ jQuery(function($) {
     }
       // Load dates from URL on page load
     $(document).ready(function() {
-        // Set minimum date to today for check-in
-        const today = new Date().toISOString().split('T')[0];
-        $('#guesty-checkin').attr('min', today);
-        
-        // Update checkout minimum when check-in changes
-        $('#guesty-checkin').on('change', function() {
-            const checkinDate = $(this).val();
-            if (checkinDate) {
-                // Set checkout minimum to the day after check-in
-                const checkinDateObj = new Date(checkinDate);
-                checkinDateObj.setDate(checkinDateObj.getDate() + 1);
-                const minCheckout = checkinDateObj.toISOString().split('T')[0];
-                $('#guesty-checkout').attr('min', minCheckout);
-                
-                // Clear checkout if it's now invalid
-                const currentCheckout = $('#guesty-checkout').val();
-                if (currentCheckout && currentCheckout <= checkinDate) {
-                    $('#guesty-checkout').val('');
-                }
-            }
-        });
-        
-        // Validate checkout is after check-in
-        $('#guesty-checkout').on('change', function() {
-            const checkinDate = $('#guesty-checkin').val();
-            const checkoutDate = $(this).val();
-            
-            if (checkinDate && checkoutDate && checkoutDate <= checkinDate) {
-                alert('Check-out date must be after check-in date.');
-                $(this).val('');
-                return;
-            }
-        });
-        
         const urlCheckin = getUrlParameter('checkin');
         const urlCheckout = getUrlParameter('checkout');
         
         if (urlCheckin && urlCheckout) {
-            $('#guesty-checkin').val(urlCheckin);
-            $('#guesty-checkout').val(urlCheckout);
-            // Trigger change event to set proper minimums
-            $('#guesty-checkin').trigger('change');
+            $('#guesty-daterange').val(urlCheckin + ' to ' + urlCheckout);
             performSearch(urlCheckin, urlCheckout);
         }
     });
       // Handle form submission
     $('#guesty-all-properties-form').on('submit', function(e) {
         e.preventDefault();
-        const checkin = $('#guesty-checkin').val();
-        const checkout = $('#guesty-checkout').val();
-        
-        // Validate dates
+        const range = $('#guesty-daterange').val();
+        if (!range || !range.includes(' to ')) {
+            alert('Please select a check-in and check-out date.');
+            return;
+        }
+        const [checkin, checkout] = range.split(' to ');
         if (!checkin || !checkout) {
             alert('Please select both check-in and check-out dates.');
             return;
         }
-        
         const today = new Date().toISOString().split('T')[0];
         if (checkin < today) {
             alert('Check-in date cannot be in the past.');
             return;
         }
-        
         if (checkout <= checkin) {
             alert('Check-out date must be after check-in date.');
             return;
         }
-        
         performSearch(checkin, checkout);
     });
 });
