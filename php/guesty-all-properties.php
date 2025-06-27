@@ -6,11 +6,32 @@
 add_shortcode('all_properties', 'guesty_all_properties_shortcode');
 
 function guesty_all_properties_shortcode($atts) {
-    // Enqueue JS and CSS only when shortcode is used
+    // Register, localize, and enqueue JS and CSS only when shortcode is used
     if (!wp_script_is('guesty-all-properties-script', 'enqueued')) {
+        wp_register_script(
+            'guesty-all-properties-script',
+            plugin_dir_url(__FILE__) . '../js/guesty-all-properties.js',
+            array('jquery'),
+            '2.1',
+            true
+        );
+        wp_localize_script(
+            'guesty-all-properties-script',
+            'guestyBookingAjax',
+            array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'plugin_url' => plugin_dir_url(__FILE__) . '../'
+            )
+        );
         wp_enqueue_script('guesty-all-properties-script');
     }
     if (!wp_style_is('guesty-all-properties-style', 'enqueued')) {
+        wp_register_style(
+            'guesty-all-properties-style',
+            plugin_dir_url(__FILE__) . '../css/guesty-all-properties.css',
+            [],
+            '2.1'
+        );
         wp_enqueue_style('guesty-all-properties-style');
     }
     $output = '<div id="guesty-all-properties">
