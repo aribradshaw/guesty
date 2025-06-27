@@ -35,17 +35,22 @@ jQuery(function($) {
             checkin,
             checkout,
             token_set: window.guestyTokenSet || 0
-        }, function(response) {            if (response.success && response.data.properties && response.data.properties.results) {
+        }, function(response) {
+            if (response.success && response.data.properties && response.data.properties.results) {
                 const props = response.data.properties.results;
                 if (props.length === 0) {
                     $('#guesty-properties-list').html('No properties available for these dates.');
                 } else {
                     // Sort properties by bedrooms (most to least)
                     props.sort((a, b) => (b.bedrooms || 0) - (a.bedrooms || 0));
-                    
-                    let html = '<ul class="guesty-properties-ul">';                    props.forEach(function(p) {
+                    let html = '<ul class="guesty-properties-ul">';
+                    props.forEach(function(p) {
                         let title = p.mapped_page && p.mapped_page.title ? p.mapped_page.title : (p.title || p.name);
                         let link = p.mapped_page && p.mapped_page.url ? p.mapped_page.url : null;
+                        // Always use the checkin/checkout from the current search
+                        if (link) {
+                            link += (link.includes('?') ? '&' : '?') + 'checkin=' + encodeURIComponent(checkin) + '&checkout=' + encodeURIComponent(checkout);
+                        }
                         let image = p.main_image || '';
                         let priceHtml = '';
                         
@@ -65,6 +70,10 @@ jQuery(function($) {
                         }                        html += `<div class="property-amenities">`;
                         // Construct the proper plugin URL - ensure it includes the plugin directory name
                         let pluginUrl = guestyBookingAjax.plugin_url;
+                        if (typeof pluginUrl === 'undefined') {
+                            console.error('[guesty-all-properties] guestyBookingAjax.plugin_url is undefined!');
+                            pluginUrl = '';
+                        }
                         if (!pluginUrl.includes('MannaPress')) {
                             pluginUrl = pluginUrl.endsWith('/') ? pluginUrl + 'MannaPress%20Guesty/' : pluginUrl + '/MannaPress%20Guesty/';
                         } else {

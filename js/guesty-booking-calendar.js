@@ -201,8 +201,7 @@ window.addEventListener('DOMContentLoaded', function () {
         }).always(function() {
             if (button) hideLoading(button, originalText);
         });
-    }    // Render the calendar
-    const renderCalendar = (data, date) => {
+    }    let renderCalendar = (data, date) => {
         renderDaysOfWeekHeader(); // Always inject header before rendering grid
         calendarGrid.empty();
         currentMonthSpan.text(date.toLocaleString('default', { month: 'long', year: 'numeric' }));
@@ -363,11 +362,11 @@ window.addEventListener('DOMContentLoaded', function () {
         
         // Force DOM reflow and style recalculation
         setTimeout(() => {
-            startCell[0].offsetHeight;
-            endCell[0].offsetHeight;
+            if (startCell[0]) startCell[0].offsetHeight;
+            if (endCell[0]) endCell[0].offsetHeight;
             // Force repaint by toggling a harmless style
-            startCell.css('transform', 'translateZ(0)');
-            endCell.css('transform', 'translateZ(0)');
+            if (startCell[0]) startCell.css('transform', 'translateZ(0)');
+            if (endCell[0]) endCell.css('transform', 'translateZ(0)');
         }, 10);
         
         // Handle half-day departures
@@ -564,4 +563,114 @@ window.addEventListener('DOMContentLoaded', function () {
     renderDaysOfWeekHeader();
     // Call key rendering on initial load
     renderCalendarKey();
+
+    // Prefill calendar from URL if checkin/checkout are present, but defer until after first render
+    let prefillState = null; // null | 'goto-checkin' | 'select-checkin' | 'goto-checkout' | 'select-checkout' | 'done'
+    let prefillCheckinDate = null;
+    let prefillCheckoutDate = null;
+    let prefillStepCount = 0;
+    const PREFILL_STEP_LIMIT = 24; // Max months to advance
+    function getUrlParameter(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+    const urlCheckin = getUrlParameter('checkin');
+    const urlCheckout = getUrlParameter('checkout');
+    console.log('[guesty-booking-calendar] URL checkin:', urlCheckin, 'checkout:', urlCheckout);
+
+    function getCurrentMonthYear() {
+        // Expects format like 'June 2025'
+        const text = $('#current-month').text();
+        if (!text) return null;
+        const [monthName, year] = text.split(' ');
+        const month = new Date(Date.parse(monthName + ' 1, 2000')).getMonth();
+        return { month, year: parseInt(year, 10) };
+    }
+
+    function getMonthYearFromDate(dateStr) {
+        const d = new Date(dateStr);
+        return { month: d.getMonth(), year: d.getFullYear() };
+    }
+
+    const originalRenderCalendar = renderCalendar;
+    renderCalendar = function(data, date) {
+        originalRenderCalendar(data, date);
+        // Autofill state machine
+        if (!urlCheckin || !urlCheckout) return;
+        if (!prefillState) {
+            prefillCheckinDate = urlCheckin;
+            prefillCheckoutDate = urlCheckout;
+            prefillStepCount = 0;
+            prefillState = 'goto-checkin';
+        }
+        if (prefillState === 'goto-checkin') {
+            const current = getCurrentMonthYear();
+            const target = getMonthYearFromDate(prefillCheckinDate);
+            if (!current) return;
+            if (current.year === target.year && current.month === target.month) {
+                prefillState = 'select-checkin';
+                setTimeout(() => renderCalendar(data, date), 50);
+                return;
+            } else if (prefillStepCount < PREFILL_STEP_LIMIT) {
+                prefillStepCount++;
+                if (current.year > target.year || (current.year === target.year && current.month > target.month)) {
+                    $('#prev-month').trigger('click');
+                } else {
+                    $('#next-month').trigger('click');
+                }
+                return;
+            } else {
+                prefillState = 'done';
+                console.warn('[guesty-booking-calendar] Prefill: step limit reached for check-in month.');
+                return;
+            }
+        }
+        if (prefillState === 'select-checkin') {
+            const checkinCell = $(`.calendar-cell[data-date="${prefillCheckinDate}"]`);
+            if (checkinCell.length) {
+                checkinCell.trigger('click');
+                prefillState = 'goto-checkout';
+                setTimeout(() => renderCalendar(data, date), 100);
+                return;
+            } else {
+                prefillState = 'done';
+                console.warn('[guesty-booking-calendar] Prefill: could not find check-in cell.');
+                return;
+            }
+        }
+        if (prefillState === 'goto-checkout') {
+            const current = getCurrentMonthYear();
+            const target = getMonthYearFromDate(prefillCheckoutDate);
+            if (!current) return;
+            if (current.year === target.year && current.month === target.month) {
+                prefillState = 'select-checkout';
+                setTimeout(() => renderCalendar(data, date), 50);
+                return;
+            } else if (prefillStepCount < PREFILL_STEP_LIMIT) {
+                prefillStepCount++;
+                if (current.year > target.year || (current.year === target.year && current.month > target.month)) {
+                    $('#prev-month').trigger('click');
+                } else {
+                    $('#next-month').trigger('click');
+                }
+                return;
+            } else {
+                prefillState = 'done';
+                console.warn('[guesty-booking-calendar] Prefill: step limit reached for checkout month.');
+                return;
+            }
+        }
+        if (prefillState === 'select-checkout') {
+            const checkoutCell = $(`.calendar-cell[data-date="${prefillCheckoutDate}"]`);
+            if (checkoutCell.length) {
+                checkoutCell.trigger('click');
+                prefillState = 'done';
+                return;
+            } else {
+                prefillState = 'done';
+                console.warn('[guesty-booking-calendar] Prefill: could not find checkout cell.');
+                return;
+            }
+        }
+    };
 });
