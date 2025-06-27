@@ -34,10 +34,30 @@ function guesty_all_properties_shortcode($atts) {
         );
         wp_enqueue_style('guesty-all-properties-style');
     }
+    if (!wp_script_is('flatpickr', 'enqueued')) {
+        wp_register_script(
+            'flatpickr',
+            'https://cdn.jsdelivr.net/npm/flatpickr',
+            [],
+            '4.6.13',
+            true
+        );
+        wp_enqueue_script('flatpickr');
+    }
+    if (!wp_style_is('flatpickr', 'enqueued')) {
+        wp_register_style(
+            'flatpickr',
+            'https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css',
+            [],
+            '4.6.13'
+        );
+        wp_enqueue_style('flatpickr');
+        // Local fallback or custom overrides
+        wp_enqueue_style('flatpickr-local', plugin_dir_url(__FILE__) . '../css/flatpickr.min.css', [], '4.6.13');
+    }
     $output = '<div id="guesty-all-properties">
         <form id="guesty-all-properties-form">
-            <label>Check-in: <input type="date" id="guesty-checkin" required></label>
-            <label>Check-out: <input type="date" id="guesty-checkout" required></label>
+            <label>Date Range: <input type="text" id="guesty-daterange" required placeholder="Select date range" autocomplete="off"></label>
             <button type="submit">Search</button>
         </form>
         <div id="guesty-properties-list">Please select dates and search.</div>
