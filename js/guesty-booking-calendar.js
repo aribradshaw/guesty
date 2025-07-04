@@ -437,13 +437,25 @@ window.addEventListener('DOMContentLoaded', function () {
     };    // Display the quote details
     const displayQuoteDetails = (quote) => {
         console.debug('[guesty-booking-calendar] displayQuoteDetails called', quote);
-        if (!quote || !quote.rates || !quote.rates.ratePlans) {
+        // Robust error handling and extraction
+        if (!quote || !quote.rates || !Array.isArray(quote.rates.ratePlans) || !quote.rates.ratePlans[0]) {
             console.warn('[guesty-booking-calendar] No quote details available', quote);
-            quoteDiv.html('<p>No quote details available.</p>');
+            quoteDiv.html('<p>No quote details available. <span style="color:#b00;">[E1001]</span></p>');
+            window.guestyQuoteId = null;
+            window.guestyRatePlanId = null;
+            window.guestyQuoteData = null;
             return;
         }
 
         const ratePlan = quote.rates.ratePlans[0];
+        if (!ratePlan || !ratePlan.ratePlan || !ratePlan.ratePlan.money) {
+            console.warn('[guesty-booking-calendar] Malformed ratePlan in quote', quote);
+            quoteDiv.html('<p>Malformed quote data. <span style="color:#b00;">[E1002]</span></p>');
+            window.guestyQuoteId = null;
+            window.guestyRatePlanId = null;
+            window.guestyQuoteData = null;
+            return;
+        }
         const money = ratePlan.ratePlan.money;
 
         // Get the total cost
@@ -465,8 +477,19 @@ window.addEventListener('DOMContentLoaded', function () {
             });
         }
 
+        // Set global variables for payment flow
+        window.guestyQuoteId = quote._id || quote.quoteId || null;
+        window.guestyRatePlanId = ratePlan.ratePlan._id || ratePlan.ratePlanId || null;
+        window.guestyQuoteData = quote;
+
+        // Defensive: show error if missing critical IDs
+        if (!window.guestyQuoteId || !window.guestyRatePlanId) {
+            quoteDiv.html('<p>Quote is missing required IDs. <span style="color:#b00;">[E1003]</span></p>');
+            return;
+        }
+
         // Clear existing content and event handlers to prevent duplication
-        quoteDiv.off().empty();        // Display the breakdown and total
+        quoteDiv.off().empty();
         quoteDiv.html(`
             <h3>Quote Details</h3>
             <div><strong>Check-in:</strong> ${checkIn} &nbsp; <strong>Check-out:</strong> ${checkOut}</div>
