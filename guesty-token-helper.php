@@ -7,7 +7,10 @@
  */
 
 if ( ! defined( 'MANNAPRESS_FILE' ) ) {
-	define( 'MANNAPRESS_FILE', __FILE__ );
+    define( 'MANNAPRESS_FILE', __FILE__ );
+}
+if ( ! defined( 'MANNAPRESS_PLUGIN_URL' ) ) {
+    define( 'MANNAPRESS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 }
 
 // Load the other php files plugin.
@@ -19,6 +22,7 @@ require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-payment.php';
 require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-all-properties.php';
 // Load the new listing/page mapping admin page
 require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-listing-page-mapping.php';
+require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-slides.php';
 
 add_action('wp_ajax_get_guesty_token', 'guesty_token_ajax');
 add_action('wp_ajax_nopriv_get_guesty_token', 'guesty_token_ajax');
