@@ -73,6 +73,7 @@ function guesty_settings_page() {
             <li><strong>[guesty_booking_calendar]</strong> - Displays the booking calendar for a specific listing.</li>
             <li><strong>[guesty_payment]</strong> - Displays the payment form for a specific listing.</li>
             <li><strong>[guesty_all_properties]</strong> - Displays all properties with a search form.</li>
+            <li><strong>[guesty_slides]</strong> - Displays a slideshow of images for a specific listing.</li>
         </ul>
     </div>
     <?php
