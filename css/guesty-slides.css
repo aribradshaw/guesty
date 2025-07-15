@@ -97,29 +97,111 @@
   .guesty-slide { width: 100%; } /* 1 per row */
 }
 
+/* Enhanced Lightbox Styles */
 .guesty-lightbox {
   display: flex;
   align-items: center;
   justify-content: center;
   position: fixed;
   left: 0; top: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.85);
+  background: rgba(0,0,0,0.9);
   z-index: 9999;
 }
 .guesty-lightbox-img {
-  max-width: 90vw;
-  max-height: 90vh;
+  max-width: 85vw;
+  max-height: 85vh;
   border-radius: 8px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 32px rgba(0,0,0,0.6);
+  object-fit: contain;
 }
 .guesty-lightbox-close {
   position: absolute;
-  top: 2vw;
-  right: 2vw;
+  top: 20px;
+  right: 20px;
   color: #fff;
   font-size: 2.5em;
   font-weight: bold;
   cursor: pointer;
-  z-index: 10000;
-  text-shadow: 0 2px 8px #000;
+  z-index: 10001;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  transition: opacity 0.2s;
+}
+.guesty-lightbox-close:hover {
+  opacity: 0.7;
+}
+
+/* Lightbox Navigation Arrows - Same style as slider but inverted colors */
+.guesty-lightbox-prev,
+.guesty-lightbox-next {
+  position: absolute;
+  top: 50%;
+  z-index: 10001;
+  background: rgba(255,255,255,0.8);
+  color: #333;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 1.8em;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.guesty-lightbox-prev {
+  left: 20px;
+}
+.guesty-lightbox-next {
+  right: 20px;
+}
+.guesty-lightbox-prev:hover,
+.guesty-lightbox-next:hover {
+  background: rgba(255,255,255,1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Image Counter */
+.guesty-lightbox-counter {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  background: rgba(0,0,0,0.6);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.9em;
+  backdrop-filter: blur(10px);
+  z-index: 10001;
+}
+
+/* Mobile lightbox adjustments */
+@media (max-width: 768px) {
+  .guesty-lightbox-img {
+    max-width: 95vw;
+    max-height: 80vh;
+  }
+  .guesty-lightbox-prev,
+  .guesty-lightbox-next {
+    width: 40px;
+    height: 40px;
+    font-size: 1.4em;
+  }
+  .guesty-lightbox-prev { left: 10px; }
+  .guesty-lightbox-next { right: 10px; }
+  .guesty-lightbox-close {
+    top: 10px;
+    right: 10px;
+    font-size: 2em;
+  }
+  .guesty-lightbox-counter {
+    bottom: 10px;
+    padding: 6px 12px;
+    font-size: 0.8em;
+  }
 }
