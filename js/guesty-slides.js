@@ -23,9 +23,11 @@ jQuery(document).ready(function ($) {
                 gallery.html('<div class="guesty-slides-error">No images found for this listing.</div>');
                 return;
             }
+            const images = response.data.images;
+            
             // Build slider HTML (track only)
             let slidesHtml = '<div class="guesty-slider-track">';
-            response.data.images.forEach((img, idx) => {
+            images.forEach((img, idx) => {
                 slidesHtml += `
                     <div class="guesty-slide">
                         <div class="guesty-slide-aspect">
@@ -35,11 +37,16 @@ jQuery(document).ready(function ($) {
                 `;
             });
             slidesHtml += '</div>';
-            // Add lightbox container
+            // Add enhanced lightbox container with navigation
             slidesHtml += `
                 <div class="guesty-lightbox" style="display:none;">
                     <span class="guesty-lightbox-close">&times;</span>
+                    <button class="guesty-lightbox-prev" aria-label="Previous Image">&#10094;</button>
+                    <button class="guesty-lightbox-next" aria-label="Next Image">&#10095;</button>
                     <img class="guesty-lightbox-img" src="" alt="" />
+                    <div class="guesty-lightbox-counter">
+                        <span class="guesty-lightbox-current">1</span> / <span class="guesty-lightbox-total">${images.length}</span>
+                    </div>
                 </div>
             `;
             gallery.html(slidesHtml);
@@ -98,16 +105,74 @@ jQuery(document).ready(function ($) {
             });
             updateSlider();
 
-            // Lightbox logic
+            // Enhanced lightbox logic with infinite scrolling
+            let currentLightboxIndex = 0;
+            
+            function updateLightbox() {
+                const img = images[currentLightboxIndex];
+                gallery.find('.guesty-lightbox-img').attr('src', img.original).attr('alt', img.caption || `Image ${currentLightboxIndex + 1}`);
+                gallery.find('.guesty-lightbox-current').text(currentLightboxIndex + 1);
+            }
+            
+            function goToLightboxImage(idx) {
+                if (idx < 0) {
+                    currentLightboxIndex = images.length - 1;
+                } else if (idx >= images.length) {
+                    currentLightboxIndex = 0;
+                } else {
+                    currentLightboxIndex = idx;
+                }
+                updateLightbox();
+            }
+            
+            // Open lightbox
             $slides.find('img').on('click', function () {
-                const src = $(this).data('original') || $(this).attr('src');
-                const alt = $(this).attr('alt');
-                gallery.find('.guesty-lightbox-img').attr('src', src).attr('alt', alt);
+                currentLightboxIndex = parseInt($(this).data('idx'));
+                updateLightbox();
                 gallery.find('.guesty-lightbox').fadeIn(150);
+                $('body').css('overflow', 'hidden'); // Prevent background scrolling
             });
-            gallery.find('.guesty-lightbox-close, .guesty-lightbox').on('click', function (e) {
-                if (e.target !== this) return;
+            
+            // Close lightbox
+            function closeLightbox() {
                 gallery.find('.guesty-lightbox').fadeOut(150);
+                $('body').css('overflow', ''); // Restore scrolling
+            }
+            
+            gallery.find('.guesty-lightbox-close').on('click', closeLightbox);
+            
+            // Click outside image to close
+            gallery.find('.guesty-lightbox').on('click', function (e) {
+                if (e.target === this) {
+                    closeLightbox();
+                }
+            });
+            
+            // Lightbox navigation
+            gallery.find('.guesty-lightbox-prev').on('click', function (e) {
+                e.stopPropagation();
+                goToLightboxImage(currentLightboxIndex - 1);
+            });
+            
+            gallery.find('.guesty-lightbox-next').on('click', function (e) {
+                e.stopPropagation();
+                goToLightboxImage(currentLightboxIndex + 1);
+            });
+            
+            // Keyboard navigation
+            $(document).on('keydown.guesty-lightbox', function (e) {
+                if (gallery.find('.guesty-lightbox').is(':visible')) {
+                    if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        goToLightboxImage(currentLightboxIndex - 1);
+                    } else if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        goToLightboxImage(currentLightboxIndex + 1);
+                    } else if (e.key === 'Escape') {
+                        e.preventDefault();
+                        closeLightbox();
+                    }
+                }
             });
         });
     });
