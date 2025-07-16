@@ -27,6 +27,13 @@ function guesty_settings_page() {
             update_option('guesty_client_secret_1', sanitize_text_field($_POST['guesty_client_secret_1']));
             update_option('guesty_client_id_2', sanitize_text_field($_POST['guesty_client_id_2']));
             update_option('guesty_client_secret_2', sanitize_text_field($_POST['guesty_client_secret_2']));
+            // Save payment method and Stripe keys for each token set
+            update_option('guesty_payment_method_1', sanitize_text_field($_POST['guesty_payment_method_1']));
+            update_option('guesty_stripe_secret_1', sanitize_text_field($_POST['guesty_stripe_secret_1']));
+            update_option('guesty_stripe_publishable_1', sanitize_text_field($_POST['guesty_stripe_publishable_1']));
+            update_option('guesty_payment_method_2', sanitize_text_field($_POST['guesty_payment_method_2']));
+            update_option('guesty_stripe_secret_2', sanitize_text_field($_POST['guesty_stripe_secret_2']));
+            update_option('guesty_stripe_publishable_2', sanitize_text_field($_POST['guesty_stripe_publishable_2']));
 
             echo '<div class="notice notice-success"><p>Settings saved successfully.</p></div>';
         }
@@ -37,6 +44,13 @@ function guesty_settings_page() {
     $client_secret_1 = get_option('guesty_client_secret_1', '');
     $client_id_2 = get_option('guesty_client_id_2', '');
     $client_secret_2 = get_option('guesty_client_secret_2', '');
+    // Get payment method and Stripe keys for each token set
+    $payment_method_1 = get_option('guesty_payment_method_1', 'guesty');
+    $stripe_secret_1 = get_option('guesty_stripe_secret_1', '');
+    $stripe_publishable_1 = get_option('guesty_stripe_publishable_1', '');
+    $payment_method_2 = get_option('guesty_payment_method_2', 'guesty');
+    $stripe_secret_2 = get_option('guesty_stripe_secret_2', '');
+    $stripe_publishable_2 = get_option('guesty_stripe_publishable_2', '');
 
     // Render the settings form
     ?>
@@ -62,9 +76,56 @@ function guesty_settings_page() {
                     <th scope="row"><label for="guesty_client_secret_2">Client Secret 2 (fallback)</label></th>
                     <td><input type="text" name="guesty_client_secret_2" id="guesty_client_secret_2" value="<?php echo esc_attr($client_secret_2); ?>" class="regular-text"></td>
                 </tr>
+                <tr>
+                <th scope="row">Payment Method 1</th>
+                <td>
+                    <select name="guesty_payment_method_1" id="guesty_payment_method_1" onchange="toggleStripeFields(1)">
+                        <option value="guesty" <?php selected($payment_method_1, 'guesty'); ?>>GuestyPay</option>
+                        <option value="stripe" <?php selected($payment_method_1, 'stripe'); ?>>Stripe</option>
+                    </select>
+                </td>
+            </tr>
+            <tr class="stripe-fields-1" style="display:<?php echo ($payment_method_1 === 'stripe') ? 'table-row' : 'none'; ?>;">
+                <th scope="row"><label for="guesty_stripe_secret_1">Stripe Secret Key 1</label></th>
+                <td><input type="text" name="guesty_stripe_secret_1" id="guesty_stripe_secret_1" value="<?php echo esc_attr($stripe_secret_1); ?>" class="regular-text"></td>
+            </tr>
+            <tr class="stripe-fields-1" style="display:<?php echo ($payment_method_1 === 'stripe') ? 'table-row' : 'none'; ?>;">
+                <th scope="row"><label for="guesty_stripe_publishable_1">Stripe Publishable Key 1</label></th>
+                <td><input type="text" name="guesty_stripe_publishable_1" id="guesty_stripe_publishable_1" value="<?php echo esc_attr($stripe_publishable_1); ?>" class="regular-text"></td>
+            </tr>
+            <tr>
+                <th scope="row">Payment Method 2 (fallback)</th>
+                <td>
+                    <select name="guesty_payment_method_2" id="guesty_payment_method_2" onchange="toggleStripeFields(2)">
+                        <option value="guesty" <?php selected($payment_method_2, 'guesty'); ?>>GuestyPay</option>
+                        <option value="stripe" <?php selected($payment_method_2, 'stripe'); ?>>Stripe</option>
+                    </select>
+                </td>
+            </tr>
+            <tr class="stripe-fields-2" style="display:<?php echo ($payment_method_2 === 'stripe') ? 'table-row' : 'none'; ?>;">
+                <th scope="row"><label for="guesty_stripe_secret_2">Stripe Secret Key 2</label></th>
+                <td><input type="text" name="guesty_stripe_secret_2" id="guesty_stripe_secret_2" value="<?php echo esc_attr($stripe_secret_2); ?>" class="regular-text"></td>
+            </tr>
+            <tr class="stripe-fields-2" style="display:<?php echo ($payment_method_2 === 'stripe') ? 'table-row' : 'none'; ?>;">
+                <th scope="row"><label for="guesty_stripe_publishable_2">Stripe Publishable Key 2</label></th>
+                <td><input type="text" name="guesty_stripe_publishable_2" id="guesty_stripe_publishable_2" value="<?php echo esc_attr($stripe_publishable_2); ?>" class="regular-text"></td>
+            </tr>
             </table>
             <?php submit_button('Save Settings', 'primary', 'guesty_settings_submit'); ?>
         </form>
+        <script>
+        function toggleStripeFields(num) {
+            var method = document.getElementById('guesty_payment_method_' + num).value;
+            var fields = document.querySelectorAll('.stripe-fields-' + num);
+            fields.forEach(function(row) {
+                row.style.display = (method === 'stripe') ? 'table-row' : 'none';
+            });
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleStripeFields(1);
+            toggleStripeFields(2);
+        });
+        </script>
         <p><em><strong>MannaGuesty</strong> Shortcodes:</em></p>
         <ul>
             <li><strong>[guesty_map]</strong> - Displays the map for a specific listing.</li>
