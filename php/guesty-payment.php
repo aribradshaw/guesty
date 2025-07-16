@@ -4,8 +4,9 @@
 function guesty_payment_shortcode($atts) {
     ob_start();
     ?>
-    <div id="guesty-payment-section" style="display:none;">
-        <form id="guesty-guest-form" style="display:none;">
+    <div id="guesty-payment-section">
+        <div id="guesty-payment-method-label" style="font-weight:bold;margin-bottom:10px;"></div>
+        <div id="guesty-payment-fields">
             <h3>Guest Details</h3>
             <div class="guesty-row">
                 <input type="text" id="guest-first-name" placeholder="First Name" required>
@@ -18,17 +19,66 @@ function guesty_payment_shortcode($atts) {
             <input type="text" id="guest-address-line1" placeholder="Address Line 1" required>
             <div class="guesty-row">
                 <input type="text" id="guest-city" placeholder="City" required>
-                <input type="text" id="guest-country" placeholder="Country (e.g. US)" required>
+                <select id="guest-country" required>
+                    <option value="">Country</option>
+                    <option value="US">United States</option>
+                    <option value="CA">Canada</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="AU">Australia</option>
+                    <option value="FR">France</option>
+                    <option value="DE">Germany</option>
+                    <option value="IT">Italy</option>
+                    <option value="ES">Spain</option>
+                    <option value="MX">Mexico</option>
+                    <option value="BR">Brazil</option>
+                    <option value="IN">India</option>
+                    <option value="JP">Japan</option>
+                    <option value="CN">China</option>
+                    <option value="ZA">South Africa</option>
+                    <option value="IE">Ireland</option>
+                    <option value="NZ">New Zealand</option>
+                    <option value="SG">Singapore</option>
+                    <option value="NL">Netherlands</option>
+                    <option value="SE">Sweden</option>
+                    <option value="CH">Switzerland</option>
+                    <option value="BE">Belgium</option>
+                    <option value="AT">Austria</option>
+                    <option value="DK">Denmark</option>
+                    <option value="NO">Norway</option>
+                    <option value="FI">Finland</option>
+                    <option value="PL">Poland</option>
+                    <option value="PT">Portugal</option>
+                    <option value="RU">Russia</option>
+                    <option value="KR">South Korea</option>
+                    <option value="AR">Argentina</option>
+                    <option value="CL">Chile</option>
+                    <option value="CO">Colombia</option>
+                    <option value="IL">Israel</option>
+                    <option value="TR">Turkey</option>
+                    <option value="GR">Greece</option>
+                    <option value="CZ">Czech Republic</option>
+                    <option value="HU">Hungary</option>
+                    <option value="RO">Romania</option>
+                    <option value="SK">Slovakia</option>
+                    <option value="BG">Bulgaria</option>
+                    <option value="HR">Croatia</option>
+                    <option value="SI">Slovenia</option>
+                    <option value="EE">Estonia</option>
+                    <option value="LV">Latvia</option>
+                    <option value="LT">Lithuania</option>
+                    <option value="LU">Luxembourg</option>
+                    <option value="MT">Malta</option>
+                    <option value="CY">Cyprus</option>
+                </select>
                 <input type="text" id="guest-postal-code" placeholder="Postal Code" required>
             </div>
-            <button type="submit">Continue to Payment</button>
-        </form>
-        <form id="guesty-payment-form" style="display:none;">
+        </div>
+        <div id="guesty-payment-form">
             <h3>Payment Details</h3>
             <div id="guesty-tokenization-container"></div>
-            <button id="guesty-pay-btn" type="button">Book Now</button>
+            <button id="guesty-pay-btn" type="button">Pay Now</button>
             <div id="guesty-payment-message"></div>
-        </form>
+        </div>
     </div>
     <script src="https://pay.guesty.com/tokenization/v2/init.js"></script>
     <?php
@@ -59,6 +109,24 @@ add_action('wp_enqueue_scripts', function () {
         [],
         '1.0'
     );
+    
+    // Add inline CSS for loading spinner
+    wp_add_inline_style('guesty-payment-style', '
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    ');
 });
 
 add_action('wp_ajax_guesty_create_reservation', 'guesty_create_reservation');
