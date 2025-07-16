@@ -26,13 +26,15 @@ jQuery(document).ready(function ($) {
     window.guestyStripeCard = null;
     window.guestyStripePk = null;
 
-    // Always show the payment method label at the top
-    let labelDiv = $('#guesty-payment-method-label');
-    if (!labelDiv.length) {
-        labelDiv = $('<div id="guesty-payment-method-label" style="font-weight:bold;margin-bottom:10px;"></div>');
-        $('#guesty-payment-section').prepend(labelDiv);
+    // Helper: Update payment indicator
+    function updatePaymentIndicator(method) {
+        const indicator = $('#guesty-payment-indicator');
+        if (method === 'stripe') {
+            indicator.text('S').removeClass('guestypay').addClass('stripe');
+        } else {
+            indicator.text('GP').removeClass('stripe').addClass('guestypay');
+        }
     }
-    labelDiv.text('Payment Method: ...');
 
     // Helper: Render Stripe Elements form
     function renderStripeForm(pk) {
@@ -60,7 +62,41 @@ jQuery(document).ready(function ($) {
     // Helper: Render GuestyPay form (just clears container, GuestyPay renders on submit)
     function renderGuestyPayForm() {
         clearStripeForm();
-        $('#guesty-tokenization-container').empty();
+        $('#guesty-tokenization-container').html(`
+            <div id="guesty-tokenization-form">
+                <div class="guesty-card-fields">
+                    <div class="guesty-card-number-container">
+                        <input type="text" id="guesty-card-number" placeholder="Card Number" required>
+                    </div>
+                    <div class="guesty-row">
+                        <div class="guesty-card-expiry-container">
+                            <input type="text" id="guesty-card-expiry" placeholder="MM/YY" required>
+                        </div>
+                        <div class="guesty-card-cvc-container">
+                            <input type="text" id="guesty-card-cvc" placeholder="CVC" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `);
+        
+        // Initialize GuestyPay tokenization with the form fields
+        if (window.guestyTokenization) {
+            try {
+                window.guestyTokenization.init({
+                    cardNumber: '#guesty-card-number',
+                    cardExpiry: '#guesty-card-expiry',
+                    cardCvc: '#guesty-card-cvc'
+                });
+                console.log('[guesty-payment.js] GuestyPay tokenization initialized');
+            } catch (error) {
+                console.error('[guesty-payment.js] Error initializing GuestyPay tokenization:', error);
+            }
+        } else {
+            console.warn('[guesty-payment.js] GuestyPay tokenization SDK not loaded');
+        }
+        
+        console.log('[guesty-payment.js] GuestyPay form rendered');
     }
 
     // Always fetch and display payment method label on page load (if token set is known)
@@ -71,7 +107,7 @@ jQuery(document).ready(function ($) {
         // If tokenSet is 0 and we don't have a quote yet, wait for it
         if (tokenSet === 0 && !window.guestyQuoteData) {
             console.debug('[guesty-payment.js] No token set available yet, waiting for token...');
-            labelDiv.text('Payment Method: Waiting for token...');
+            // labelDiv.text('Payment Method: Waiting for token...'); // This line is removed
             return;
         }
         
@@ -82,9 +118,13 @@ jQuery(document).ready(function ($) {
             console.debug('[guesty-payment.js] get_guesty_payment_method response:', response);
             console.debug('[guesty-payment.js] Current window.guestyTokenSet:', window.guestyTokenSet);
             if (response.success && response.data && response.data.label) {
-                labelDiv.text('Payment Method: ' + response.data.label);
+                // labelDiv.text('Payment Method: ' + response.data.label); // This line is removed
                 window.guestyPaymentMethod = response.data.method;
                 console.debug('[guesty-payment.js] Set payment method to:', response.data.method);
+                
+                // Update the payment indicator
+                updatePaymentIndicator(response.data.method);
+                
                 if (response.data.method === 'stripe') {
                     // Fetch Stripe publishable key and render form
                     $.post(guestyAjax.ajax_url, {
@@ -103,7 +143,7 @@ jQuery(document).ready(function ($) {
                     renderGuestyPayForm();
                 }
             } else {
-                labelDiv.text('Payment Method: Unknown');
+                // labelDiv.text('Payment Method: Unknown'); // This line is removed
                 clearStripeForm();
                 console.warn('[guesty-payment.js] Could not determine payment method for tokenSet:', tokenSet);
             }

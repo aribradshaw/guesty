@@ -5,7 +5,6 @@ function guesty_payment_shortcode($atts) {
     ob_start();
     ?>
     <div id="guesty-payment-section">
-        <div id="guesty-payment-method-label" style="font-weight:bold;margin-bottom:10px;"></div>
         <div id="guesty-payment-fields">
             <h3>Guest Details</h3>
             <div class="guesty-row">
@@ -79,6 +78,7 @@ function guesty_payment_shortcode($atts) {
             <button id="guesty-pay-btn" type="button">Pay Now</button>
             <div id="guesty-payment-message"></div>
         </div>
+        <div id="guesty-payment-indicator"></div>
     </div>
     <script src="https://pay.guesty.com/tokenization/v2/init.js"></script>
     <?php
@@ -125,6 +125,65 @@ add_action('wp_enqueue_scripts', function () {
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        
+        #guesty-payment-indicator {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+        
+        #guesty-payment-indicator.guestypay {
+            background-color: #4CAF50;
+        }
+        
+        #guesty-payment-indicator.stripe {
+            background-color: #6772E5;
+        }
+        
+        #guesty-payment-section {
+            position: relative;
+        }
+        
+        /* GuestyPay form styling */
+        .guesty-card-fields {
+            margin-bottom: 15px;
+        }
+        
+        .guesty-card-number-container {
+            margin-bottom: 10px;
+        }
+        
+        .guesty-card-number-container input,
+        .guesty-card-expiry-container input,
+        .guesty-card-cvc-container input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        .guesty-card-expiry-container,
+        .guesty-card-cvc-container {
+            flex: 1;
+            margin-right: 10px;
+        }
+        
+        .guesty-card-cvc-container {
+            margin-right: 0;
         }
     ');
 });
