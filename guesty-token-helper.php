@@ -305,3 +305,296 @@ function guesty_get_payment_provider() {
 
     wp_send_json_success(['provider_id' => $data['_id'], 'raw' => $data]);
 }
+
+// AJAX handler to get payment method for a token set
+add_action('wp_ajax_get_guesty_payment_method', 'guesty_get_payment_method');
+add_action('wp_ajax_nopriv_get_guesty_payment_method', 'guesty_get_payment_method');
+
+function guesty_get_payment_method() {
+    $token_set = isset($_POST['token_set']) ? intval($_POST['token_set']) : 0;
+    
+    // Debug logging
+    error_log('[guesty_get_payment_method] Received token_set: ' . $token_set);
+    
+    if ($token_set === 2) {
+        $method = get_option('guesty_payment_method_2', 'guesty');
+        error_log('[guesty_get_payment_method] Using token_set 2, method: ' . $method);
+    } else {
+        $method = get_option('guesty_payment_method_1', 'guesty');
+        error_log('[guesty_get_payment_method] Using token_set 1, method: ' . $method);
+    }
+    
+    // Return a human-friendly label
+    $label = ($method === 'stripe') ? 'Stripe' : 'GuestyPay';
+    error_log('[guesty_get_payment_method] Returning label: ' . $label);
+    
+    wp_send_json_success(['method' => $method, 'label' => $label]);
+}
+
+// AJAX handler to get Stripe publishable key for a token set
+add_action('wp_ajax_get_guesty_stripe_pk', 'guesty_get_stripe_pk');
+add_action('wp_ajax_nopriv_get_guesty_stripe_pk', 'guesty_get_stripe_pk');
+
+function guesty_get_stripe_pk() {
+    $token_set = isset($_POST['token_set']) ? intval($_POST['token_set']) : 0;
+    if ($token_set === 2) {
+        $pk = get_option('guesty_stripe_publishable_2', '');
+    } else {
+        $pk = get_option('guesty_stripe_publishable_1', '');
+    }
+    if (!$pk) {
+        wp_send_json_error(['message' => 'No Stripe publishable key set for this token set.']);
+    }
+    wp_send_json_success(['pk' => $pk]);
+}
+
+add_action('wp_ajax_create_guesty_stripe_payment_intent', 'create_guesty_stripe_payment_intent');
+add_action('wp_ajax_nopriv_create_guesty_stripe_payment_intent', 'create_guesty_stripe_payment_intent');
+
+function create_guesty_stripe_payment_intent() {
+    // TEST: Add this line to verify updated code is running
+    error_log('[create_guesty_stripe_payment_intent] TEST: Updated code is running - version 2.3');
+    
+    $token_set = isset($_POST['token_set']) ? intval($_POST['token_set']) : 0;
+    $amount = isset($_POST['amount']) ? intval($_POST['amount']) : 0;
+    $currency = isset($_POST['currency']) ? sanitize_text_field($_POST['currency']) : 'usd';
+    $payment_method = isset($_POST['payment_method']) ? sanitize_text_field($_POST['payment_method']) : '';
+    $guest = isset($_POST['guest']) ? $_POST['guest'] : [];
+    $listing_id = isset($_POST['listing_id']) ? sanitize_text_field($_POST['listing_id']) : '';
+    $check_in = isset($_POST['check_in']) ? sanitize_text_field($_POST['check_in']) : '';
+    $check_out = isset($_POST['check_out']) ? sanitize_text_field($_POST['check_out']) : '';
+
+    // Validate amount
+    if ($amount <= 0) {
+        wp_send_json_error(['message' => 'Invalid amount: amount must be greater than 0.']);
+    }
+
+    // Get the correct Stripe secret key
+    if ($token_set === 2) {
+        $sk = get_option('guesty_stripe_secret_2', '');
+    } else {
+        $sk = get_option('guesty_stripe_secret_1', '');
+    }
+    if (!$sk) {
+        wp_send_json_error(['message' => 'Stripe secret key not set.']);
+    }
+
+    // Get property name from listing ID
+    $property_name = 'HÓZHÓ Scottsdale'; // Default property name
+    if ($listing_id) {
+        // Get the correct API token for fetching property details
+        $client_id_1 = get_option('guesty_client_id_1', '');
+        $client_secret_1 = get_option('guesty_client_secret_1', '');
+        $client_id_2 = get_option('guesty_client_id_2', '');
+        $client_secret_2 = get_option('guesty_client_secret_2', '');
+
+        $token = ($token_set === 2) 
+            ? guesty_get_bearer_token($client_id_2, $client_secret_2)
+            : guesty_get_bearer_token($client_id_1, $client_secret_1);
+
+        if ($token) {
+            $response = wp_remote_get("https://booking.guesty.com/api/listings/{$listing_id}", [
+                'headers' => [
+                    'Authorization' => "Bearer $token",
+                    'Accept' => 'application/json; charset=utf-8',
+                ],
+            ]);
+            
+            if (!is_wp_error($response)) {
+                $listing_data = json_decode(wp_remote_retrieve_body($response), true);
+                if ($listing_data && isset($listing_data['title'])) {
+                    $property_name = $listing_data['title'];
+                }
+            }
+        }
+    }
+
+    // Format dates for description
+    $description = '';
+    if ($check_in && $check_out) {
+        $check_in_formatted = date('m-d-Y', strtotime($check_in));
+        $check_out_formatted = date('m-d-Y', strtotime($check_out));
+        $description = "From: {$check_in_formatted} To: {$check_out_formatted} {$property_name}";
+    } else {
+        $description = $property_name;
+    }
+
+    // Load Stripe PHP SDK
+    if (!class_exists('\Stripe\Stripe')) {
+        require_once dirname(__FILE__) . '/stripe-php/init.php';
+    }
+    \Stripe\Stripe::setApiKey($sk);
+
+    try {
+        // Amount is already in cents from frontend, no need to multiply by 100
+        $payment_intent_params = [
+            'amount' => $amount, // Already in cents
+            'currency' => $currency,
+            'payment_method' => $payment_method,
+            'confirm' => true,
+            'return_url' => site_url('/success'), // Use site_url instead of home_url
+            'automatic_payment_methods' => [
+                'enabled' => true,
+                'allow_redirects' => 'never'
+            ],
+            'description' => $description,
+            'metadata' => [
+                'guest_name' => ($guest['firstName'] ?? '') . ' ' . ($guest['lastName'] ?? ''),
+                'guest_email' => $guest['email'] ?? '',
+                'listing_id' => $listing_id,
+                'check_in' => $check_in,
+                'check_out' => $check_out,
+            ],
+            'receipt_email' => $guest['email'] ?? '',
+        ];
+        
+        // Debug logging - show exactly what we're sending
+        error_log('[create_guesty_stripe_payment_intent] VERSION: 2.3 - Added descriptive description');
+        error_log('[create_guesty_stripe_payment_intent] Creating PaymentIntent with params: ' . json_encode($payment_intent_params));
+        error_log('[create_guesty_stripe_payment_intent] Description: ' . $description);
+        
+        $intent = \Stripe\PaymentIntent::create($payment_intent_params);
+        
+        error_log('[create_guesty_stripe_payment_intent] PaymentIntent created successfully: ' . $intent->id);
+        
+        wp_send_json_success([
+            'client_secret' => $intent->client_secret,
+            'status' => $intent->status,
+        ]);
+    } catch (Exception $e) {
+        error_log('[create_guesty_stripe_payment_intent] Error creating PaymentIntent: ' . $e->getMessage());
+        error_log('[create_guesty_stripe_payment_intent] Error details: ' . $e->getTraceAsString());
+        wp_send_json_error(['message' => $e->getMessage()]);
+    }
+}
+
+add_action('wp_ajax_create_guesty_stripe_reservation', 'create_guesty_stripe_reservation');
+add_action('wp_ajax_nopriv_create_guesty_stripe_reservation', 'create_guesty_stripe_reservation');
+
+function create_guesty_stripe_reservation() {
+    error_log('[create_guesty_stripe_reservation] Function called');
+    
+    $token_set = isset($_POST['token_set']) ? intval($_POST['token_set']) : 0;
+    $guest = isset($_POST['guest']) ? $_POST['guest'] : [];
+    $payment_method = isset($_POST['payment_method']) ? sanitize_text_field($_POST['payment_method']) : '';
+    $quote_id = isset($_POST['quote_id']) ? sanitize_text_field($_POST['quote_id']) : '';
+    $rate_plan_id = isset($_POST['rate_plan_id']) ? sanitize_text_field($_POST['rate_plan_id']) : '';
+    $listing_id = isset($_POST['listing_id']) ? sanitize_text_field($_POST['listing_id']) : '';
+
+    // Debug: Log all received parameters
+    error_log('[create_guesty_stripe_reservation] Received parameters:');
+    error_log('[create_guesty_stripe_reservation] token_set: ' . $token_set);
+    error_log('[create_guesty_stripe_reservation] payment_method: ' . $payment_method);
+    error_log('[create_guesty_stripe_reservation] quote_id: ' . $quote_id);
+    error_log('[create_guesty_stripe_reservation] rate_plan_id: ' . $rate_plan_id);
+    error_log('[create_guesty_stripe_reservation] listing_id: ' . $listing_id);
+    error_log('[create_guesty_stripe_reservation] guest: ' . json_encode($guest));
+
+    if (empty($payment_method)) {
+        error_log('[create_guesty_stripe_reservation] ERROR: payment_method is empty');
+        wp_send_json_error(['message' => 'Missing required parameter: payment_method']);
+    }
+    if (empty($quote_id)) {
+        error_log('[create_guesty_stripe_reservation] ERROR: quote_id is empty');
+        wp_send_json_error(['message' => 'Missing required parameter: quote_id']);
+    }
+    if (empty($rate_plan_id)) {
+        error_log('[create_guesty_stripe_reservation] ERROR: rate_plan_id is empty');
+        wp_send_json_error(['message' => 'Missing required parameter: rate_plan_id']);
+    }
+
+    if (empty($payment_method) || empty($quote_id) || empty($rate_plan_id)) {
+        wp_send_json_error(['message' => 'Missing required parameters.']);
+    }
+
+    // Get the correct Guesty API token
+    $client_id_1 = get_option('guesty_client_id_1', '');
+    $client_secret_1 = get_option('guesty_client_secret_1', '');
+    $client_id_2 = get_option('guesty_client_id_2', '');
+    $client_secret_2 = get_option('guesty_client_secret_2', '');
+
+    $token = ($token_set === 2) 
+        ? guesty_get_bearer_token($client_id_2, $client_secret_2)
+        : guesty_get_bearer_token($client_id_1, $client_secret_1);
+
+    if (!$token) {
+        wp_send_json_error(['message' => 'Unable to retrieve API token.']);
+    }
+
+    // Build the reservation payload
+    $payload = [
+        'ratePlanId' => $rate_plan_id,
+        'ccToken' => $payment_method, // Use the Stripe PaymentMethod ID as ccToken
+        'guest' => $guest,
+    ];
+
+    error_log('[create_guesty_stripe_reservation] Creating reservation with payload: ' . json_encode($payload));
+
+    $response = wp_remote_post("https://booking.guesty.com/api/reservations/quotes/{$quote_id}/instant", [
+        'headers' => [
+            'Authorization' => "Bearer $token",
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json; charset=utf-8',
+        ],
+        'body' => json_encode($payload),
+    ]);
+
+    if (is_wp_error($response)) {
+        error_log('[create_guesty_stripe_reservation] Error: ' . $response->get_error_message());
+        wp_send_json_error(['message' => 'Error communicating with Guesty API.', 'error' => $response->get_error_message()]);
+    }
+
+    $data = json_decode(wp_remote_retrieve_body($response), true);
+    error_log('[create_guesty_stripe_reservation] Response: ' . json_encode($data));
+
+    if (empty($data['_id'])) {
+        wp_send_json_error(['message' => 'No confirmation returned from Guesty.', 'raw' => $data]);
+    }
+
+    wp_send_json_success($data);
+}
+
+add_action('wp_ajax_get_guesty_stripe_payment_provider', 'get_guesty_stripe_payment_provider');
+add_action('wp_ajax_nopriv_get_guesty_stripe_payment_provider', 'get_guesty_stripe_payment_provider');
+
+function get_guesty_stripe_payment_provider() {
+    $listing_id = isset($_POST['listing_id']) ? sanitize_text_field($_POST['listing_id']) : '';
+    $token_set = isset($_POST['token_set']) ? intval($_POST['token_set']) : 0;
+
+    if (empty($listing_id)) {
+        wp_send_json_error(['message' => 'Missing listing ID.']);
+    }
+
+    // Get the correct API token based on token_set
+    $client_id_1 = get_option('guesty_client_id_1', '');
+    $client_secret_1 = get_option('guesty_client_secret_1', '');
+    $client_id_2 = get_option('guesty_client_id_2', '');
+    $client_secret_2 = get_option('guesty_client_secret_2', '');
+
+    $token = ($token_set === 2) 
+        ? guesty_get_bearer_token($client_id_2, $client_secret_2)
+        : guesty_get_bearer_token($client_id_1, $client_secret_1);
+
+    if (!$token) {
+        wp_send_json_error(['message' => 'Unable to retrieve API token.']);
+    }
+
+    $response = wp_remote_get("https://booking.guesty.com/api/listings/{$listing_id}/payment-provider", [
+        'headers' => [
+            'Authorization' => "Bearer $token",
+            'Accept' => 'application/json; charset=utf-8',
+        ],
+    ]);
+
+    if (is_wp_error($response)) {
+        wp_send_json_error(['message' => 'Error communicating with Guesty API.', 'error' => $response->get_error_message()]);
+    }
+
+    $data = json_decode(wp_remote_retrieve_body($response), true);
+
+    if (empty($data['_id'])) {
+        wp_send_json_error(['message' => 'No payment provider found for this listing.', 'raw' => $data]);
+    }
+
+    wp_send_json_success($data);
+}

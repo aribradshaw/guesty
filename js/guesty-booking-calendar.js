@@ -479,7 +479,7 @@ window.addEventListener('DOMContentLoaded', function () {
 
         // Set global variables for payment flow
         window.guestyQuoteId = quote._id || quote.quoteId || null;
-        window.guestyRatePlanId = ratePlan.ratePlan._id || ratePlan.ratePlanId || null;
+        window.guestyRatePlanId = ratePlan.ratePlan._id || ratePlan.ratePlanId || ratePlan._id || null;
         window.guestyQuoteData = quote;
 
         // Defensive: show error if missing critical IDs
@@ -530,10 +530,8 @@ window.addEventListener('DOMContentLoaded', function () {
             checkOut,
             listingId: listingId // <-- use the actual listingId from the calendar context
         };
-        window.guestyQuoteId = quote?._id || null;
-        window.guestyRatePlanId = ratePlan?._id || null;
-        window.guestyQuoteData = quote;
         console.debug('[guesty-booking-calendar] About to trigger guesty_quote_ready', eventPayload);
+        console.debug('[guesty-booking-calendar] Set IDs - QuoteId:', window.guestyQuoteId, 'RatePlanId:', window.guestyRatePlanId);
         $(document).trigger('guesty_quote_ready', [eventPayload]);
         console.log('[guesty-booking-calendar] guesty_quote_ready event triggered', eventPayload);
     };
