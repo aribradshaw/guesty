@@ -311,10 +311,13 @@ add_action('wp_ajax_get_guesty_payment_method', 'guesty_get_payment_method');
 add_action('wp_ajax_nopriv_get_guesty_payment_method', 'guesty_get_payment_method');
 
 function guesty_get_payment_method() {
+    error_log('[guesty_get_payment_method] Function called');
+    
     $token_set = isset($_POST['token_set']) ? intval($_POST['token_set']) : 0;
     
     // Debug logging
     error_log('[guesty_get_payment_method] Received token_set: ' . $token_set);
+    error_log('[guesty_get_payment_method] POST data: ' . json_encode($_POST));
     
     if ($token_set === 2) {
         $method = get_option('guesty_payment_method_2', 'guesty');
@@ -327,6 +330,7 @@ function guesty_get_payment_method() {
     // Return a human-friendly label
     $label = ($method === 'stripe') ? 'Stripe' : 'GuestyPay';
     error_log('[guesty_get_payment_method] Returning label: ' . $label);
+    error_log('[guesty_get_payment_method] Final response: ' . json_encode(['method' => $method, 'label' => $label]));
     
     wp_send_json_success(['method' => $method, 'label' => $label]);
 }

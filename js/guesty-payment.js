@@ -19,6 +19,14 @@ jQuery(document).ready(function ($) {
     if (!$('#guesty-payment-section').length) {
         console.warn('[guesty-payment.js] #guesty-payment-section not found in DOM. Is the [guesty_payment] shortcode present on this page?');
     }
+    
+    // Add mobile debugging
+    console.debug('[guesty-payment.js] DOM ready - Window width:', $(window).width());
+    console.debug('[guesty-payment.js] DOM ready - Is mobile:', $(window).width() <= 768);
+    console.debug('[guesty-payment.js] DOM ready - Payment section exists:', $('#guesty-payment-section').length);
+    console.debug('[guesty-payment.js] DOM ready - Payment section is visible:', $('#guesty-payment-section').is(':visible'));
+    console.debug('[guesty-payment.js] DOM ready - Payment section display:', $('#guesty-payment-section').css('display'));
+    
     // Remove all hide/show logic
     window.guestyPaymentMethod = null;
     window.guestyStripe = null;
@@ -33,6 +41,25 @@ jQuery(document).ready(function ($) {
             indicator.text('S').removeClass('guestypay').addClass('stripe');
         } else {
             indicator.text('GP').removeClass('stripe').addClass('guestypay');
+        }
+    }
+
+    // Helper: Ensure payment section is visible on mobile
+    function ensurePaymentSectionVisible() {
+        const isMobile = $(window).width() <= 768;
+        if (isMobile) {
+            console.debug('[guesty-payment.js] Mobile detected, ensuring payment section is visible');
+            const $paymentSection = $('#guesty-payment-section');
+            if ($paymentSection.length && !$paymentSection.is(':visible')) {
+                console.debug('[guesty-payment.js] Payment section not visible on mobile, forcing show');
+                $paymentSection.show();
+                // Force display block in case it's hidden by CSS
+                $paymentSection.css({
+                    'display': 'block',
+                    'visibility': 'visible',
+                    'opacity': '1'
+                });
+            }
         }
     }
 
@@ -111,6 +138,7 @@ jQuery(document).ready(function ($) {
             return;
         }
         
+        console.debug('[guesty-payment.js] Making AJAX request to get payment method...');
         $.post(guestyAjax.ajax_url, {
             action: 'get_guesty_payment_method',
             token_set: tokenSet
@@ -126,6 +154,7 @@ jQuery(document).ready(function ($) {
                 updatePaymentIndicator(response.data.method);
                 
                 if (response.data.method === 'stripe') {
+                    console.debug('[guesty-payment.js] Rendering Stripe form...');
                     // Fetch Stripe publishable key and render form
                     $.post(guestyAjax.ajax_url, {
                         action: 'get_guesty_stripe_pk',
@@ -136,17 +165,31 @@ jQuery(document).ready(function ($) {
                             window.guestyStripePk = pkResp.data.pk;
                             renderStripeForm(pkResp.data.pk);
                         } else {
-                            $('#guesty-tokenization-container').html('<div style="color:red">Could not load Stripe publishable key.</div>');
+                            console.error('[guesty-payment.js] Failed to get Stripe PK, falling back to GuestyPay');
+                            $('#guesty-tokenization-container').html('<div style="color:red">Could not load Stripe publishable key. Falling back to GuestyPay.</div>');
+                            renderGuestyPayForm();
                         }
+                        ensurePaymentSectionVisible(); // Ensure payment section is visible on mobile
                     });
                 } else {
+                    console.debug('[guesty-payment.js] Rendering GuestyPay form...');
                     renderGuestyPayForm();
+                    ensurePaymentSectionVisible(); // Ensure payment section is visible on mobile
                 }
             } else {
-                // labelDiv.text('Payment Method: Unknown'); // This line is removed
-                clearStripeForm();
                 console.warn('[guesty-payment.js] Could not determine payment method for tokenSet:', tokenSet);
+                console.warn('[guesty-payment.js] Response was:', response);
+                // Fallback: render GuestyPay form if payment method detection fails
+                console.debug('[guesty-payment.js] Falling back to GuestyPay form...');
+                renderGuestyPayForm();
+                ensurePaymentSectionVisible(); // Ensure payment section is visible on mobile
             }
+        }).fail(function(xhr, status, error) {
+            console.error('[guesty-payment.js] AJAX request failed:', {xhr, status, error});
+            // Fallback: render GuestyPay form if AJAX fails
+            console.debug('[guesty-payment.js] AJAX failed, falling back to GuestyPay form...');
+            renderGuestyPayForm();
+            ensurePaymentSectionVisible(); // Ensure payment section is visible on mobile
         });
     }
     
@@ -160,9 +203,36 @@ jQuery(document).ready(function ($) {
         });
     }
     
+    // Ensure payment section is visible on mobile after a short delay
+    setTimeout(function() {
+        ensurePaymentSectionVisible();
+        
+        // Test: Always render a payment form if none exists
+        if ($('#guesty-tokenization-container').is(':empty')) {
+            console.debug('[guesty-payment.js] No payment form found after 1 second, rendering test form...');
+            $('#guesty-tokenization-container').html(`
+                <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: #f9f9f9;">
+                    <h4 style="margin: 0 0 10px 0; color: #666;">Payment Details</h4>
+                    <p style="margin: 0; color: #888; font-size: 14px;">Payment form will load here once payment method is determined.</p>
+                    <div style="margin-top: 10px; padding: 10px; background: #fff; border: 1px solid #ccc; border-radius: 3px;">
+                        <p style="margin: 0; font-size: 12px; color: #666;">Loading payment method...</p>
+                    </div>
+                </div>
+            `);
+        }
+    }, 1000);
+    
     // Also update when quote is ready (in case token set changes)
     $(document).on('guesty_quote_ready', function (e, quoteData) {
         console.debug('[guesty-payment.js] guesty_quote_ready event received, quoteData:', quoteData);
+        
+        // Add mobile debugging
+        console.debug('[guesty-payment.js] Quote ready - Window width:', $(window).width());
+        console.debug('[guesty-payment.js] Quote ready - Is mobile:', $(window).width() <= 768);
+        console.debug('[guesty-payment.js] Quote ready - Payment section exists:', $('#guesty-payment-section').length);
+        console.debug('[guesty-payment.js] Quote ready - Payment section is visible:', $('#guesty-payment-section').is(':visible'));
+        console.debug('[guesty-payment.js] Quote ready - Payment section display:', $('#guesty-payment-section').css('display'));
+        
         // Try to extract listingId from all possible locations
         window.guestyListingId =
             quoteData?.listingId ||
@@ -194,6 +264,23 @@ jQuery(document).ready(function ($) {
                 $('#guesty-payment-message').html('Could not fetch payment provider. Please contact support.');
             }
         });
+        ensurePaymentSectionVisible(); // Ensure payment section is visible on mobile
+        
+        // Immediate fallback: If no payment form is rendered, force render GuestyPay
+        if ($('#guesty-tokenization-container').is(':empty')) {
+            console.debug('[guesty-payment.js] No payment form rendered immediately, forcing GuestyPay form...');
+            renderGuestyPayForm();
+            ensurePaymentSectionVisible();
+        }
+        
+        // Fallback: If no payment form is rendered after 2 seconds, force render GuestyPay
+        setTimeout(function() {
+            if ($('#guesty-tokenization-container').is(':empty')) {
+                console.debug('[guesty-payment.js] No payment form rendered after 2 seconds, forcing GuestyPay form...');
+                renderGuestyPayForm();
+                ensurePaymentSectionVisible();
+            }
+        }, 2000);
     });
 
     // Remove guest form/payment form split: show all fields at once
@@ -388,6 +475,15 @@ jQuery(document).ready(function ($) {
             $('#guesty-payment-message').html('Payment failed: ' + (err.message || 'Unknown error'));
             console.error('[guesty-payment.js] Payment failed:', err);
             $btn.prop('disabled', false).text(originalText); // Reset button
+        }
+    });
+    
+    // Handle window resize to ensure payment section stays visible on mobile
+    $(window).on('resize', function() {
+        const isMobile = $(window).width() <= 768;
+        if (isMobile) {
+            console.debug('[guesty-payment.js] Window resized on mobile, checking payment section visibility');
+            ensurePaymentSectionVisible();
         }
     });
 });

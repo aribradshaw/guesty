@@ -419,7 +419,22 @@ window.addEventListener('DOMContentLoaded', function () {
             success: function(response) {
                 console.debug('[guesty-booking-calendar] Quote AJAX success', response);
                 $('#guesty-quote-spinner').hide(); // Hide spinner
+                
+                // Add mobile debugging
+                console.debug('[guesty-booking-calendar] About to show payment section');
+                console.debug('[guesty-booking-calendar] Payment section exists:', $('#guesty-payment-section').length);
+                console.debug('[guesty-booking-calendar] Payment section current display:', $('#guesty-payment-section').css('display'));
+                console.debug('[guesty-booking-calendar] Payment section current visibility:', $('#guesty-payment-section').css('visibility'));
+                console.debug('[guesty-booking-calendar] Payment section current opacity:', $('#guesty-payment-section').css('opacity'));
+                console.debug('[guesty-booking-calendar] Window width:', $(window).width());
+                console.debug('[guesty-booking-calendar] Is mobile:', $(window).width() <= 768);
+                
                 $('#guesty-payment-section').show(); // Show form
+                
+                // Add post-show debugging
+                console.debug('[guesty-booking-calendar] After show - Payment section display:', $('#guesty-payment-section').css('display'));
+                console.debug('[guesty-booking-calendar] After show - Payment section is visible:', $('#guesty-payment-section').is(':visible'));
+                
                 if (response.success) {
                     displayQuoteDetails(response.data); // Pass full data
                 } else {
@@ -430,7 +445,17 @@ window.addEventListener('DOMContentLoaded', function () {
             error: (xhr, status, error) => {
                 console.error('[guesty-booking-calendar] Quote AJAX error', { xhr, status, error });
                 $('#guesty-quote-spinner').hide(); // Hide spinner
+                
+                // Add mobile debugging for error case too
+                console.debug('[guesty-booking-calendar] Error case - About to show payment section');
+                console.debug('[guesty-booking-calendar] Error case - Payment section exists:', $('#guesty-payment-section').length);
+                console.debug('[guesty-booking-calendar] Error case - Window width:', $(window).width());
+                
                 $('#guesty-payment-section').show(); // Show form
+                
+                // Add post-show debugging for error case
+                console.debug('[guesty-booking-calendar] Error case - After show - Payment section is visible:', $('#guesty-payment-section').is(':visible'));
+                
                 quoteDiv.html('<p>An error occurred while fetching the quote. Please try again.</p>');
             },
         });
@@ -471,10 +496,35 @@ window.addEventListener('DOMContentLoaded', function () {
 
         // Build invoice items list
         let invoiceItemsHtml = '';
+        let totalTaxes = 0;
+        let hasServiceFee = false;
+        
         if (money.invoiceItems && Array.isArray(money.invoiceItems)) {
             money.invoiceItems.forEach(item => {
-                invoiceItemsHtml += `<li><strong>${item.title}:</strong> ${formatCurrency(item.amount)}</li>`;
+                const itemTitle = item.title || '';
+                const itemAmount = item.amount || 0;
+                
+                // Check if this is a tax item (contains common tax keywords)
+                const isTaxItem = /tax|maricopa|scottsdale|phoenix/i.test(itemTitle);
+                
+                if (isTaxItem) {
+                    // Add to total taxes instead of showing individually
+                    totalTaxes += itemAmount;
+                } else {
+                    // Handle service fee names
+                    let displayTitle = itemTitle;
+                    if (/hh service fee|hozho reservation fee/i.test(itemTitle)) {
+                        displayTitle = 'Service Fee';
+                    }
+                    
+                    invoiceItemsHtml += `<li><strong>${displayTitle}:</strong> ${formatCurrency(itemAmount)}</li>`;
+                }
             });
+            
+            // Add total taxes as a single line item if there are any
+            if (totalTaxes > 0) {
+                invoiceItemsHtml += `<li><strong>Taxes:</strong> ${formatCurrency(totalTaxes)}</li>`;
+            }
         }
 
         // Set global variables for payment flow
