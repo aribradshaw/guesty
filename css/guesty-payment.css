@@ -137,3 +137,47 @@
     background: #fff !important;
     color: #222;
 }
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    #guesty-payment-section {
+        max-width: 100%;
+        margin: 20px 10px 0 10px;
+        padding: 20px 16px 24px 16px;
+        border-radius: 8px;
+    }
+    
+    #guesty-payment-section h3 {
+        font-size: 1.2em;
+        margin-bottom: 16px;
+    }
+    
+    .guesty-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .guesty-row input,
+    .guesty-row select {
+        flex: none;
+        width: 100%;
+    }
+    
+    #guesty-payment-form button,
+    #guesty-guest-form button {
+        padding: 12px 0;
+        font-size: 16px; /* Prevent zoom on iOS */
+    }
+}
+
+@media (max-width: 480px) {
+    #guesty-payment-section {
+        margin: 15px 8px 0 8px;
+        padding: 16px 12px 20px 12px;
+    }
+    
+    #guesty-payment-section h3 {
+        font-size: 1.1em;
+        margin-bottom: 14px;
+    }
+}
