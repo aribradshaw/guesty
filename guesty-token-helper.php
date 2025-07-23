@@ -423,53 +423,8 @@ function create_guesty_stripe_payment_intent() {
         $description = $property_name;
     }
 
-    // Load Stripe PHP SDK
-    if (!class_exists('\Stripe\Stripe')) {
-        require_once dirname(__FILE__) . '/stripe-php/init.php';
-    }
-    \Stripe\Stripe::setApiKey($sk);
-
-    try {
-        // Amount is already in cents from frontend, no need to multiply by 100
-        $payment_intent_params = [
-            'amount' => $amount, // Already in cents
-            'currency' => $currency,
-            'payment_method' => $payment_method,
-            'confirm' => true,
-            'return_url' => site_url('/success'), // Use site_url instead of home_url
-            'automatic_payment_methods' => [
-                'enabled' => true,
-                'allow_redirects' => 'never'
-            ],
-            'description' => $description,
-            'metadata' => [
-                'guest_name' => ($guest['firstName'] ?? '') . ' ' . ($guest['lastName'] ?? ''),
-                'guest_email' => $guest['email'] ?? '',
-                'listing_id' => $listing_id,
-                'check_in' => $check_in,
-                'check_out' => $check_out,
-            ],
-            'receipt_email' => $guest['email'] ?? '',
-        ];
-        
-        // Debug logging - show exactly what we're sending
-        error_log('[create_guesty_stripe_payment_intent] VERSION: 2.3 - Added descriptive description');
-        error_log('[create_guesty_stripe_payment_intent] Creating PaymentIntent with params: ' . json_encode($payment_intent_params));
-        error_log('[create_guesty_stripe_payment_intent] Description: ' . $description);
-        
-        $intent = \Stripe\PaymentIntent::create($payment_intent_params);
-        
-        error_log('[create_guesty_stripe_payment_intent] PaymentIntent created successfully: ' . $intent->id);
-        
-        wp_send_json_success([
-            'client_secret' => $intent->client_secret,
-            'status' => $intent->status,
-        ]);
-    } catch (Exception $e) {
-        error_log('[create_guesty_stripe_payment_intent] Error creating PaymentIntent: ' . $e->getMessage());
-        error_log('[create_guesty_stripe_payment_intent] Error details: ' . $e->getTraceAsString());
-        wp_send_json_error(['message' => $e->getMessage()]);
-    }
+    // Stripe functionality removed - library no longer available
+    wp_send_json_error(['message' => 'Stripe payment processing is currently unavailable']);
 }
 
 add_action('wp_ajax_create_guesty_stripe_reservation', 'create_guesty_stripe_reservation');
