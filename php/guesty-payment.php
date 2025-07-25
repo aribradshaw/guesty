@@ -5,6 +5,11 @@ function guesty_payment_shortcode($atts) {
     ob_start();
     ?>
     <div id="guesty-payment-section">
+        <script>
+        // Generate nonce directly in shortcode
+        window.guestyPaymentNonce = '<?php echo wp_create_nonce('guesty_payment_nonce'); ?>';
+        console.log('[Shortcode] Generated payment nonce:', window.guestyPaymentNonce);
+        </script>
         <div id="guesty-payment-fields">
             <h3>Guest Details</h3>
             <div class="guesty-row">
@@ -88,6 +93,17 @@ add_shortcode('guesty_payment', 'guesty_payment_shortcode');
 
 // Register and enqueue JS
 add_action('wp_enqueue_scripts', function () {
+    // Load the new server-side approach instead of the iframe approach
+    wp_register_script(
+        'guesty-payment-serverside-script',
+        plugin_dir_url(dirname(__FILE__)) . '/js/guesty-payment-serverside.js',
+        ['jquery'],
+        '1.1',
+        true
+    );
+    wp_enqueue_script('guesty-payment-serverside-script');
+    
+    // Also load the original script for Stripe compatibility
     wp_register_script(
         'guesty-payment-script',
         plugin_dir_url(dirname(__FILE__)) . '/js/guesty-payment.js',
@@ -96,7 +112,11 @@ add_action('wp_enqueue_scripts', function () {
         true
     );
     wp_enqueue_script('guesty-payment-script');
+    
     // FIX: Use the same object name as in JS (guestyAjax)
+    wp_localize_script('guesty-payment-serverside-script', 'guestyAjax', [
+        'ajax_url' => admin_url('admin-ajax.php'),
+    ]);
     wp_localize_script('guesty-payment-script', 'guestyAjax', [
         'ajax_url' => admin_url('admin-ajax.php'),
     ]);
@@ -185,6 +205,109 @@ add_action('wp_enqueue_scripts', function () {
         .guesty-card-cvc-container {
             margin-right: 0;
         }
+        
+        /* Server-side payment form styling */
+        #guesty-serverside-form {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fff;
+        }
+        
+        .payment-method-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .method-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            margin-right: 10px;
+        }
+        
+        .method-badge.guestypay {
+            background-color: #4CAF50;
+        }
+        
+        .method-text {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .card-input-group {
+            margin-bottom: 15px;
+        }
+        
+        .card-input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .card-input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease;
+        }
+        
+        .card-input-group input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+        
+        .card-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .card-row .card-input-group {
+            flex: 1;
+        }
+        
+        .security-notice {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: #e8f5e8;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #2e7d32;
+        }
+        
+        .security-icon {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ffcdd2;
+            margin-bottom: 15px;
+        }
     ');
 });
 
@@ -239,5 +362,21 @@ function guesty_create_reservation() {
         wp_send_json_error(['message' => 'No confirmation returned from Guesty.', 'raw' => $data]);
     }
 
+    // Log payment verification details
+    error_log('GUESTY PAYMENT SUCCESS: Reservation created with payment details: ' . json_encode([
+        'reservation_id' => $data['_id'],
+        'confirmation_code' => $data['confirmationCode'] ?? 'N/A',
+        'status' => $data['status'] ?? 'N/A',
+        'guest_email' => $guest['email'] ?? 'N/A',
+        'cc_token_used' => $ccToken,
+        'quote_id' => $quoteId,
+        'rate_plan_id' => $ratePlanId,
+        'token_set' => $token_set,
+        'response_code' => wp_remote_retrieve_response_code($response)
+    ]));
+
     wp_send_json_success($data);
 }
+
+// Include the server-side tokenization endpoint
+require_once __DIR__ . '/guesty-tokenize-endpoint.php';
