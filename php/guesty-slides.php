@@ -10,7 +10,52 @@ function guesty_slides_shortcode($atts) {
         <div class="guesty-slides-gallery">Loading images...</div>
     </div>';
     
-    // Captions removed from slider - only shown in lightbox
+    // Add inline script for captions
+    $output .= '<script>
+    function createCaptionsInline() {
+        const listingId = jQuery("#guesty-listing-id").data("listing-id") || jQuery(".guesty-slides-wrapper").data("listing-id");
+        
+        if (listingId && typeof guestySlidesAjax !== "undefined") {
+            jQuery.post(guestySlidesAjax.ajax_url, {
+                action: "fetch_guesty_images",
+                listing_id: listingId
+            }, function (response) {
+                if (response.success && response.data.images) {
+                    const images = response.data.images;
+                    
+                    jQuery(".guesty-slide").each(function(idx) {
+                        const $slide = jQuery(this);
+                        const img = images[idx];
+                        
+                        $slide.find(".guesty-slide-caption").remove();
+                        
+                        if (img && img.caption && String(img.caption).trim().length > 0) {
+                            const escapeHtml = (str) => {
+                                if (typeof str !== "string") return "";
+                                return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/\'/g, "&#039;");
+                            };
+                            
+                            const safeCaption = escapeHtml(String(img.caption));
+                            $slide.append("<div class=\"guesty-slide-caption\">" + safeCaption + "</div>");
+                        }
+                    });
+                    
+                    // Add navigation handlers
+                    jQuery(".guesty-slider-prev").off("click.inline").on("click.inline", function() {
+                        setTimeout(createCaptionsInline, 100);
+                    });
+                    jQuery(".guesty-slider-next").off("click.inline").on("click.inline", function() {
+                        setTimeout(createCaptionsInline, 100);
+                    });
+                }
+            });
+        }
+    }
+    
+    jQuery(document).ready(function() {
+        setTimeout(createCaptionsInline, 1000);
+    });
+    </script>';
     
     // Enqueue JS and CSS
     wp_enqueue_script('guesty-slides-script');
@@ -198,8 +243,56 @@ function fetch_guesty_images() {
         }
     }
     if (!empty($images)) {
-        // Return images without caption script - captions only shown in lightbox
-        wp_send_json_success(['images' => $images]);
+        // Add inline JavaScript to create captions immediately
+        $caption_script = "
+        <script>
+        console.log('PHP: Adding caption script');
+        jQuery(document).ready(function() {
+            function createCaptionsFromPHP() {
+                console.log('PHP: Creating captions from PHP script');
+                const images = " . json_encode($images) . ";
+                let addedCount = 0;
+                
+                jQuery('.guesty-slide').each(function(idx) {
+                    const \$slide = jQuery(this);
+                    const img = images[idx];
+                    
+                    \$slide.find('.guesty-slide-caption').remove();
+                    
+                    if (img && img.caption && String(img.caption).trim().length > 0) {
+                        const escapeHtml = (str) => {
+                            if (typeof str !== 'string') return '';
+                            return str
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/\"/g, '&quot;')
+                                .replace(/'/g, '&#039;');
+                        };
+                        
+                        const safeCaption = escapeHtml(String(img.caption));
+                        \$slide.append('<div class=\"guesty-slide-caption\">' + safeCaption + '</div>');
+                        addedCount++;
+                    }
+                });
+                
+                console.log('PHP: Created ' + addedCount + ' captions');
+                
+                // Add click handlers
+                jQuery('.guesty-slider-prev').off('click.php').on('click.php', function() {
+                    setTimeout(createCaptionsFromPHP, 100);
+                });
+                jQuery('.guesty-slider-next').off('click.php').on('click.php', function() {
+                    setTimeout(createCaptionsFromPHP, 100);
+                });
+            }
+            
+            setTimeout(createCaptionsFromPHP, 1000);
+            setInterval(createCaptionsFromPHP, 2000);
+        });
+        </script>";
+        
+        wp_send_json_success(['images' => $images, 'caption_script' => $caption_script]);
     } else {
         wp_send_json_error(['message' => 'No images found for this listing.', 'errors' => $errors]);
     }

@@ -37,7 +37,7 @@ jQuery(document).ready(function ($) {
             
             const images = response.data.images;
             
-            // Build slider HTML (track only) - no captions on slider
+            // Build slider HTML (track only)
             let slidesHtml = '<div class="guesty-slider-track">';
             images.forEach((img, idx) => {
                 slidesHtml += `
