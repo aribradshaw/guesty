@@ -57,6 +57,98 @@ function guesty_slides_shortcode($atts) {
     });
     </script>';
     
+    // Add CSS to hide slider captions but keep logic intact
+    $output .= '<style>
+    .guesty-slide-caption {
+        font-size: 0 !important;
+        line-height: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        visibility: hidden !important;
+    }
+    </style>';
+    
+    // Add universal lightbox caption injector
+    $output .= '<script>
+    function injectLightboxCaptions() {
+        // Remove existing captions
+        jQuery(".lightbox-caption").remove();
+        
+        // Find any visible lightbox
+        const $lightbox = jQuery(".lightbox:visible, .fancybox:visible, .magnific-popup:visible, .photoswipe:visible, .guesty-lightbox:visible, [class*=\"lightbox\"]:visible, [class*=\"popup\"]:visible").first();
+        
+        if ($lightbox.length === 0) {
+            return;
+        }
+        
+        // Find image in lightbox
+        const $lightboxImg = $lightbox.find("img").first();
+        if ($lightboxImg.length === 0) {
+            return;
+        }
+        
+        const lightboxImgSrc = $lightboxImg.attr("src");
+        
+        // Find matching slider image with flexible matching
+        let $sliderImg = jQuery(".guesty-slide img, .slider img, .gallery img").filter(function() {
+            const src = jQuery(this).attr("src") || jQuery(this).attr("data-original");
+            return src === lightboxImgSrc;
+        }).first();
+        
+        // If exact match fails, try partial matching
+        if ($sliderImg.length === 0) {
+            $sliderImg = jQuery(".guesty-slide img, .slider img, .gallery img").filter(function() {
+                const src = jQuery(this).attr("src") || jQuery(this).attr("data-original");
+                if (!src) return false;
+                // Extract filename from URLs for comparison
+                const lightboxFilename = lightboxImgSrc.split("/").pop().split("?")[0];
+                const sliderFilename = src.split("/").pop().split("?")[0];
+                return lightboxFilename === sliderFilename;
+            }).first();
+        }
+        
+        // Get caption
+        let caption = "";
+        
+        if ($sliderImg.length > 0) {
+            caption = $sliderImg.attr("alt") || "";
+            const $slideContainer = $sliderImg.closest(".guesty-slide, .slide, .gallery-item");
+            if ($slideContainer.length > 0) {
+                const $slideCaption = $slideContainer.find(".guesty-slide-caption, .slide-caption, .caption, .description");
+                if ($slideCaption.length > 0) {
+                    caption = $slideCaption.text().trim();
+                }
+            }
+        }
+        
+        // Only inject caption if we have real caption data
+        if (!caption || caption.length === 0) {
+            return;
+        }
+        
+        // Create and inject caption
+        const $caption = jQuery("<div class=\"lightbox-caption\" style=\"position:fixed;bottom:20px;left:20px;color:#fff;background:#000;padding:12px 20px;border-radius:8px;font-size:1.1em;font-weight:600;z-index:99999;border:2px solid #fff;box-shadow:0 4px 20px rgba(0,0,0,0.8);text-shadow:1px 1px 2px rgba(0,0,0,0.8);max-width:40vw;text-align:left;word-break:break-word;\">" + caption + "</div>");
+        $lightbox.append($caption);
+    }
+    
+    // Monitor for lightbox events
+    jQuery(document).on("click", "img", function() {
+        setTimeout(injectLightboxCaptions, 500);
+    });
+    
+    jQuery(document).on("click", "[class*=\"next\"], [class*=\"prev\"], [class*=\"arrow\"]", function() {
+        setTimeout(injectLightboxCaptions, 300);
+    });
+    
+    // Force check every second
+    setInterval(injectLightboxCaptions, 1000);
+    
+    // Initial check
+    setTimeout(injectLightboxCaptions, 2000);
+    </script>';
+    
     // Enqueue JS and CSS
     wp_enqueue_script('guesty-slides-script');
     wp_enqueue_style('guesty-slides-style');

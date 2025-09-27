@@ -192,21 +192,58 @@
   z-index: 10001;
 }
 
-/* Lightbox caption */
+/* Lightbox caption - EXTREMELY VISIBLE */
 .guesty-lightbox-caption {
   position: absolute;
   bottom: 64px;
   left: 50%;
   transform: translateX(-50%);
-  color: #fff;
-  background: rgba(0,0,0,0.6);
-  padding: 10px 14px;
-  border-radius: 6px;
+  color: #fff !important;
+  background: #000 !important;
+  padding: 16px 24px;
+  border-radius: 12px;
   max-width: 85vw;
   text-align: center;
-  font-size: 0.95em;
-  z-index: 10001;
-  backdrop-filter: blur(10px);
+  font-size: 1.2em !important;
+  font-weight: 600 !important;
+  line-height: 1.5;
+  z-index: 10002 !important;
+  border: 3px solid #fff !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8) !important;
+  word-break: break-word;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Force caption visibility with additional selectors */
+.guesty-lightbox .guesty-lightbox-caption,
+.guesty-lightbox-caption[style*="display: none"],
+.guesty-lightbox-caption[style*="opacity: 0"] {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  color: #fff !important;
+  background: #000 !important;
+  border: 3px solid #fff !important;
+}
+
+/* Nuclear option - force all captions to be visible */
+.guesty-lightbox-caption {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  color: #fff !important;
+  background: #000 !important;
+  border: 3px solid #fff !important;
+  font-size: 1.2em !important;
+  font-weight: 600 !important;
+  padding: 16px 24px !important;
+  border-radius: 12px !important;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8) !important;
+  z-index: 10002 !important;
 }
 
 /* Mobile lightbox adjustments */
@@ -235,8 +272,17 @@
   }
   .guesty-lightbox-caption {
     bottom: 50px;
-    padding: 8px 12px;
-    font-size: 0.85em;
+    padding: 12px 18px;
+    font-size: 1.1em !important;
+    font-weight: 600 !important;
     max-width: 95vw;
+    border-radius: 10px;
+    color: #fff !important;
+    background: #000 !important;
+    border: 2px solid #fff !important;
+    z-index: 10002 !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
   }
 }
