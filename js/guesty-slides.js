@@ -4,6 +4,16 @@ jQuery(document).ready(function ($) {
     $('.guesty-slides-wrapper').each(function () {
         const wrapper = $(this);
         const gallery = wrapper.find('.guesty-slides-gallery');
+        const escapeHtml = (str) => {
+            if (typeof str !== 'string') return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        };
+        
         // Try to get listingId from #guesty-listing-id
         let listingId = wrapper.data('listing-id');
         if (!listingId) {
@@ -14,6 +24,7 @@ jQuery(document).ready(function ($) {
             gallery.html('<div class="guesty-slides-error">No listing ID found on this page.</div>');
             return;
         }
+        
         // Fetch images via AJAX
         $.post(guestySlidesAjax.ajax_url, {
             action: 'fetch_guesty_images',
@@ -23,20 +34,22 @@ jQuery(document).ready(function ($) {
                 gallery.html('<div class="guesty-slides-error">No images found for this listing.</div>');
                 return;
             }
+            
             const images = response.data.images;
             
-            // Build slider HTML (track only)
+            // Build slider HTML (track only) - no captions on slider
             let slidesHtml = '<div class="guesty-slider-track">';
             images.forEach((img, idx) => {
                 slidesHtml += `
                     <div class="guesty-slide">
                         <div class="guesty-slide-aspect">
-                            <img src="${img.url}" data-original="${img.original}" alt="Listing Image ${idx + 1}" data-idx="${idx}" class="guesty-slide-img"/>
+                            <img src="${img.url}" data-original="${img.original}" alt="${escapeHtml(String(img.caption || `Image ${idx + 1}`))}" data-idx="${idx}" class="guesty-slide-img"/>
                         </div>
                     </div>
                 `;
             });
             slidesHtml += '</div>';
+            
             // Add enhanced lightbox container with navigation
             slidesHtml += `
                 <div class="guesty-lightbox" style="display:none;">
@@ -44,12 +57,15 @@ jQuery(document).ready(function ($) {
                     <button class="guesty-lightbox-prev" aria-label="Previous Image">&#10094;</button>
                     <button class="guesty-lightbox-next" aria-label="Next Image">&#10095;</button>
                     <img class="guesty-lightbox-img" src="" alt="" />
+                    <div class="guesty-lightbox-caption" style="display:none;"></div>
                     <div class="guesty-lightbox-counter">
                         <span class="guesty-lightbox-current">1</span> / <span class="guesty-lightbox-total">${images.length}</span>
                     </div>
                 </div>
             `;
+            
             gallery.html(slidesHtml);
+            
             // Add navigation arrows outside the gallery
             if (wrapper.find('.guesty-slider-prev').length === 0) {
                 wrapper.append('<button class="guesty-slider-prev" aria-label="Previous">&#10094;</button>');
@@ -62,6 +78,7 @@ jQuery(document).ready(function ($) {
             const $track = gallery.find('.guesty-slider-track');
             const $slides = gallery.find('.guesty-slide');
             let current = 0;
+            
             function getSlidesToShow() {
                 const w = window.innerWidth;
                 if (w < 400) return 1;
@@ -70,6 +87,7 @@ jQuery(document).ready(function ($) {
                 if (w < 1024) return 4;
                 return 6;
             }
+            
             function updateSlider() {
                 const slidesToShow = getSlidesToShow();
                 const slideWidth = 100 / slidesToShow;
@@ -82,6 +100,7 @@ jQuery(document).ready(function ($) {
                 const offset = -(current * (100 / slidesToShow));
                 $track.css('transform', `translateX(${offset}%)`);
             }
+            
             function goTo(idx) {
                 const slidesToShow = getSlidesToShow();
                 const maxIdx = Math.max(0, $slides.length - slidesToShow);
@@ -94,15 +113,19 @@ jQuery(document).ready(function ($) {
                 }
                 updateSlider();
             }
+            
+            // Navigation event handlers
             wrapper.find('.guesty-slider-prev').off('click').on('click', function () {
                 goTo(current - 1);
             });
             wrapper.find('.guesty-slider-next').off('click').on('click', function () {
                 goTo(current + 1);
             });
+            
             $(window).on('resize', function () {
                 updateSlider();
             });
+            
             updateSlider();
 
             // Enhanced lightbox logic with infinite scrolling
@@ -110,7 +133,14 @@ jQuery(document).ready(function ($) {
             
             function updateLightbox() {
                 const img = images[currentLightboxIndex];
-                gallery.find('.guesty-lightbox-img').attr('src', img.original).attr('alt', img.caption || `Image ${currentLightboxIndex + 1}`);
+                const altText = img.caption || `Image ${currentLightboxIndex + 1}`;
+                gallery.find('.guesty-lightbox-img').attr('src', img.original).attr('alt', altText);
+                const $cap = gallery.find('.guesty-lightbox-caption');
+                if (img.caption && img.caption.trim().length > 0) {
+                    $cap.text(img.caption).show();
+                } else {
+                    $cap.hide().text('');
+                }
                 gallery.find('.guesty-lightbox-current').text(currentLightboxIndex + 1);
             }
             
