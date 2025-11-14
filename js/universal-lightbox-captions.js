@@ -1,12 +1,15 @@
 // Universal Lightbox Caption Injector
 // This script will work with ANY lightbox system on the page
-console.log('=== UNIVERSAL LIGHTBOX CAPTION INJECTOR LOADED ===');
+// DISABLED - Using main slideshow caption system instead
+console.log('=== UNIVERSAL LIGHTBOX CAPTION INJECTOR DISABLED ===');
 
 jQuery(document).ready(function ($) {
-    console.log('=== UNIVERSAL CAPTION SCRIPT INITIALIZING ===');
+    console.log('=== UNIVERSAL CAPTION SCRIPT DISABLED ===');
     
-    // Function to inject captions into any lightbox
+    // Function to inject captions into any lightbox - DISABLED
     function injectCaptionsIntoLightbox() {
+        // DISABLED - Caption injection disabled to prevent duplicates
+        return;
         console.log('=== INJECTING CAPTIONS INTO LIGHTBOX ===');
         
         // Look for common lightbox patterns

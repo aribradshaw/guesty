@@ -1,11 +1,12 @@
 window.addEventListener('DOMContentLoaded', function () {
     var $ = jQuery;
     const reviewsDiv = $('#guesty-reviews');
+    const reviewsContent = $('.guesty-reviews-content');
     const listingDiv = $('#guesty-listing-id');
     const listingId = listingDiv.data('listing-id');
 
     if (!listingId) {
-        reviewsDiv.text('No listing ID found on the page.');
+        reviewsContent.text('No listing ID found on the page.');
         return;
     }
 
@@ -26,20 +27,20 @@ window.addEventListener('DOMContentLoaded', function () {
                     }
                     renderReviews(response.data.reviews);
                 } else {
-                    reviewsDiv.text(response.data.message || 'Error loading reviews.');
+                    reviewsContent.text(response.data.message || 'Error loading reviews.');
                 }            },
             error: function (xhr, status, error) {
-                reviewsDiv.text('Error loading reviews.');
+                reviewsContent.text('Error loading reviews.');
             }
         });
     }
 
     function renderReviews(reviews) {
         if (reviews.length === 0) {
-            reviewsDiv.text('No reviews available.');
+            reviewsContent.text('No reviews available.');
             return;
         }
-        reviewsDiv.empty();
+        reviewsContent.empty();
         reviews.forEach(review => {
             const raw = review.rawReview || {};
             const reservation = raw.reservation;
@@ -66,7 +67,7 @@ window.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <hr/>
             `;
-            reviewsDiv.append(reviewHtml);
+            reviewsContent.append(reviewHtml);
         });
     }
 
