@@ -3,7 +3,50 @@
 
 // Shortcode for displaying reviews
 function guesty_reviews_shortcode($atts) {
-    return '<div id="guesty-reviews">Loading reviews...</div>';
+    // Register, localize, and enqueue JS and CSS only when shortcode is used
+    if (!wp_script_is('guesty-reviews-script', 'enqueued')) {
+        wp_register_script(
+            'guesty-reviews-script',
+            plugin_dir_url(__FILE__) . '../js/guesty-reviews.js',
+            array('jquery'),
+            '2.0',
+            true
+        );
+        wp_localize_script(
+            'guesty-reviews-script',
+            'guestyAjax',
+            array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+            )
+        );
+        wp_enqueue_script('guesty-reviews-script');
+    }
+    
+    if (!wp_style_is('guesty-reviews-style', 'enqueued')) {
+        wp_register_style(
+            'guesty-reviews-style',
+            plugin_dir_url(__FILE__) . '../css/guesty-reviews.css',
+            [],
+            '2.0'
+        );
+        wp_enqueue_style('guesty-reviews-style');
+    }
+    
+    $plugin_url = plugin_dir_url(__FILE__);
+    return '<div id="guesty-reviews">
+        <div class="guesty-reviews-header">
+            <h2 class="guesty-reviews-title">Guest Reviews</h2>
+            <div class="guesty-powered-by">
+                <span class="guesty-powered-by-text">POWERED BY</span>
+                <div class="guesty-powered-by-logos">
+                    <img src="' . $plugin_url . '../assets/airbnb.svg" alt="Airbnb" class="guesty-powered-by-logo">
+                    <img src="' . $plugin_url . '../assets/booking.com.svg" alt="Booking.com" class="guesty-powered-by-logo">
+                    <img src="' . $plugin_url . '../assets/vrbo.svg" alt="VRBO" class="guesty-powered-by-logo">
+                </div>
+            </div>
+        </div>
+        <div class="guesty-reviews-content">Loading reviews...</div>
+    </div>';
 }
 add_shortcode('guesty_reviews', 'guesty_reviews_shortcode');
 

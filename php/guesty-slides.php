@@ -70,9 +70,11 @@ function guesty_slides_shortcode($atts) {
     }
     </style>';
     
-    // Add universal lightbox caption injector
+    // Add universal lightbox caption injector - DISABLED
     $output .= '<script>
     function injectLightboxCaptions() {
+        // DISABLED - Caption injection disabled to prevent duplicates
+        return;
         // Remove existing captions
         jQuery(".lightbox-caption").remove();
         

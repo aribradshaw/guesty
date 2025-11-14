@@ -10,7 +10,7 @@
     margin-bottom: 25px;
     align-items: flex-end;
     width: 100%;
-    background: #f9f9f9;
+    background: #c9af8f;
     padding: 24px 18px 18px 18px;
     border-radius: 14px;
     border: 1.5px solid #e0e0e0;
@@ -74,27 +74,47 @@
     margin: 0;
 }
 .guesty-property-item {
-    background: #f7f7f7;
+    background: #e1d2b8;
     border: 1px solid #CBB08F;
     border-radius: 8px;
     margin-bottom: 20px;
     padding: 0;
-    min-height: 140px;
+    height: 80px;
     display: flex;
     overflow: hidden;
     width: 100%; /* Ensure full width of parent container */
     box-sizing: border-box;
+    position: relative;
+}
+
+.guesty-property-item::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-bottom: 20px solid #e2c8a3;
+    z-index: 1;
 }
 .property-details {
     flex: 1;
-    line-height: 1.6;
-    padding: 20px;
-    width: 65%;
+    line-height: 1.2;
+    padding: 8px 12px;
+    width: 50%;
+    background: #e1d2b8;
+    border-radius: 0 8px 8px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
 }
 .property-details strong {
-    font-size: 18px;
+    font-size: 16px;
     color: #C29C74;
     text-decoration: none;
+    margin-bottom: 4px;
 }
 .property-details a {
     text-decoration: none;
@@ -104,20 +124,20 @@
 }
 .property-amenities {
     display: flex;
-    gap: 15px;
-    margin: 8px 0;
+    gap: 12px;
+    margin: 2px 0;
     flex-wrap: wrap;
 }
 .property-amenities .amenity {
     display: flex;
     align-items: center;
-    gap: 4px;
-    font-size: 14px;
+    gap: 3px;
+    font-size: 12px;
     color: #555;
 }
 .property-amenities .icon {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     flex-shrink: 0;
     cursor: help;
 }
@@ -140,12 +160,15 @@
     color: #666;
 }
 .property-image {
-    width: 35%;
-    height: 100%;
+    width: 50%;
+    height: 140px;
     overflow: hidden;
-    border-radius: 0 8px 8px 0;
+    border-radius: 8px 0 0 8px;
     display: flex;
-    align-items: stretch;
+    align-items: center;
+    position: relative;
+    margin: -30px 0;
+    flex-shrink: 0;
 }
 .property-image a {
     display: block;

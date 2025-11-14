@@ -23,6 +23,7 @@ require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-all-properties.php';
 // Load the new listing/page mapping admin page
 require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-listing-page-mapping.php';
 require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-slides.php';
+require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-menu.php';
 
 add_action('wp_ajax_get_guesty_token', 'guesty_token_ajax');
 add_action('wp_ajax_nopriv_get_guesty_token', 'guesty_token_ajax');
