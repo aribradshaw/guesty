@@ -84,7 +84,7 @@ jQuery(function($) {
                     $('#guesty-properties-list').html('No properties available for these dates.');
                 } else {
                     // Sort properties by bedrooms (most to least)
-                    props.sort((a, b) => (b.bedrooms || 0) - (a.bedrooms || 0));
+                    props.sort((a, b) => (parseFloat(b.bedrooms) || 0) - (parseFloat(a.bedrooms) || 0));
                     let html = '<ul class="guesty-properties-ul">';
                     props.forEach(function(p) {
                         let title = p.mapped_page && p.mapped_page.title ? p.mapped_page.title : (p.title || p.name);
