@@ -42,7 +42,7 @@ jQuery(function($) {
                 updateFilterDescriptions(allProperties);
                 
                 // Display all properties immediately
-                displayProperties(allProperties);
+                displayProperties(sortPropertiesByBedroomsDesc(allProperties));
                 
                 console.log('Properties loaded successfully:', allProperties.length);
             } else {
@@ -204,7 +204,7 @@ jQuery(function($) {
         filteredProperties = filterPropertiesLocally(allProperties, currentFilters);
         
         // Display filtered properties
-        displayProperties(filteredProperties);
+        displayProperties(sortPropertiesByBedroomsDesc(filteredProperties));
         updatePropertyCount();
         
         // Repopulate dropdowns based on filtered results
@@ -250,6 +250,17 @@ jQuery(function($) {
             });
             propertiesList.html(html);
         }
+    }
+
+    function sortPropertiesByBedroomsDesc(properties) {
+        if (!Array.isArray(properties)) {
+            return [];
+        }
+        return [...properties].sort((a, b) => {
+            const aBedrooms = parseFloat(a?.bedrooms) || 0;
+            const bBedrooms = parseFloat(b?.bedrooms) || 0;
+            return bBedrooms - aBedrooms;
+        });
     }
 
     function generatePropertyCard(property) {
