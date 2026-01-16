@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MannaGuesty by The Manna Agency and Flygon LC
  * Description: Securely handles Guesty API bearer token and exposes it to front-end JavaScript. Allows various Guesty API shortcode calls.
- * Version: 2.12 - flatpickr 3 Month Calendar Integration
+ * Version: 2.13 - readme refresh
  * Author: Ari Daniel Bradshaw - Flygon LC & Dan Park - The Manna Agency
  */
 

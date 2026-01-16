@@ -20,7 +20,7 @@
     border: 1px solid #dee2e6;
     border-radius: 4px;
     max-height: 180px;
-    overflow-y: auto;
+    overflow: visible;
 }
 
 .guesty-filters h3 {
@@ -225,16 +225,26 @@
 
 /* Responsive Design */
 @media (max-width: 1200px) {
+    #guesty-menu {
+        max-height: none;
+        overflow: visible;
+    }
+    
     .guesty-menu-container {
-        flex-direction: column;
-        gap: 15px;
+        gap: 8px;
         max-height: none;
     }
     
     .guesty-filters {
-        flex: none;
-        position: static;
+        flex: 0 0 120px;
         max-height: none;
+        overflow: visible;
+    }
+    
+    .guesty-properties {
+        max-height: 400px;
+        overflow-y: auto;
+        min-width: 0;
     }
     
     .properties-columns {
@@ -246,14 +256,26 @@
 @media (max-width: 768px) {
     #guesty-menu {
         padding: 0 10px;
+        max-height: none;
+        overflow: visible;
     }
     
     .guesty-menu-container {
-        gap: 10px;
+        gap: 6px;
+        max-height: none;
     }
     
     .guesty-filters {
-        padding: 8px;
+        flex: 0 0 100px;
+        padding: 6px;
+        max-height: none;
+        overflow: visible;
+    }
+    
+    .guesty-properties {
+        max-height: 350px;
+        overflow-y: auto;
+        min-width: 0;
     }
     
     .properties-list {
@@ -262,12 +284,40 @@
 }
 
 @media (max-width: 480px) {
+    #guesty-menu {
+        padding: 0 8px;
+        max-height: none;
+        overflow: visible;
+    }
+    
+    .guesty-menu-container {
+        gap: 4px;
+    }
+    
     .guesty-filters {
-        padding: 8px;
+        flex: 0 0 90px;
+        padding: 4px;
+        max-height: none;
+        overflow: visible;
+    }
+    
+    .guesty-properties {
+        max-height: 300px;
+        overflow-y: auto;
+        min-width: 0;
     }
     
     .filter-group {
-        margin-bottom: 6px;
+        margin-bottom: 4px;
+    }
+    
+    .filter-group label {
+        font-size: 8px;
+    }
+    
+    .filter-group select {
+        font-size: 8px;
+        padding: 2px 3px;
     }
     
     .property-image {
