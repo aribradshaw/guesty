@@ -3,3 +3,26 @@
 
 # Exclude todo file
 hozhotodo.md
+
+# Dependency/vendor folders
+/stripe-php/
+/tokenization-js-master/
+/vendor/
+/node_modules/
+
+# Build artifacts
+/dist/
+/build/
+/coverage/
+
+# Env/local config
+.env
+.env.*
+
+# IDE/editor files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
