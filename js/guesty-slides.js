@@ -117,6 +117,15 @@ function injectCaptionsIntoAnyLightbox() {
     console.log('Caption injected successfully');
 }
 
+function shouldHideLightboxCaptions() {
+    return window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+}
+
+function setLightboxCaptionVisibility($lightbox, shouldHide) {
+    if (!$lightbox || $lightbox.length === 0) return;
+    $lightbox.toggleClass('guesty-hide-lightbox-captions', shouldHide);
+}
+
 // Monitor for lightbox opening events
 jQuery(document).on('click', 'img[data-original], .guesty-slide img, .slider img, .gallery img', function() {
     console.log('Image clicked, waiting for lightbox to open');
@@ -278,6 +287,7 @@ jQuery(document).ready(function ($) {
                 const altText = img.caption || `Image ${currentLightboxIndex + 1}`;
                 gallery.find('.guesty-lightbox-img').attr('src', img.original).attr('alt', altText);
                 const $cap = gallery.find('.guesty-lightbox-caption');
+                setLightboxCaptionVisibility(gallery.find('.guesty-lightbox'), shouldHideLightboxCaptions());
                 
                 // DEBUG: Log everything about the image and caption
                 console.log('=== LIGHTBOX UPDATE DEBUG ===');
@@ -290,7 +300,9 @@ jQuery(document).ready(function ($) {
                 console.log('Caption element found:', $cap.length);
                 console.log('Caption element:', $cap);
                 
-                if (img.caption && String(img.caption).trim().length > 0) {
+                if (shouldHideLightboxCaptions()) {
+                    $cap.hide().text('');
+                } else if (img.caption && String(img.caption).trim().length > 0) {
                     const captionText = String(img.caption).trim();
                     console.log('SETTING CAPTION:', captionText);
                     $cap.html(captionText).css({
@@ -339,7 +351,10 @@ jQuery(document).ready(function ($) {
                     console.log('Force check - Caption element:', $cap);
                     console.log('Force check - Caption element length:', $cap.length);
                     
-                    if (img.caption && String(img.caption).trim().length > 0) {
+                    if (shouldHideLightboxCaptions()) {
+                        setLightboxCaptionVisibility(gallery.find('.guesty-lightbox'), true);
+                        $cap.hide().text('');
+                    } else if (img.caption && String(img.caption).trim().length > 0) {
                         const captionText = String(img.caption).trim();
                         console.log('FORCE SETTING CAPTION:', captionText);
                         $cap.html(captionText).css({

@@ -285,4 +285,28 @@
     opacity: 1 !important;
     visibility: visible !important;
   }
+
+  /* Hide lightbox captions on mobile */
+  .guesty-lightbox-caption,
+  .universal-caption {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+}
+
+/* Extra safety: force caption container hidden when toggled in JS */
+.guesty-lightbox.guesty-hide-lightbox-captions .guesty-lightbox-caption,
+.guesty-lightbox.guesty-hide-lightbox-captions .universal-caption {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
 }
