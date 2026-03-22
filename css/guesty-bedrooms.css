@@ -1,0 +1,326 @@
+/**
+ * [guesty_bedrooms] — full-width responsive grid + photos
+ */
+
+.guesty-bedrooms-root {
+    width: 100%;
+    max-width: 100%;
+    margin: 1.5rem 0;
+    box-sizing: border-box;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+.guesty-bedrooms-root *,
+.guesty-bedrooms-root *::before,
+.guesty-bedrooms-root *::after {
+    box-sizing: border-box;
+}
+
+/* Loading skeleton */
+.guesty-bedrooms-root--loading .guesty-bedrooms-module--skeleton {
+    border-radius: 14px;
+    border: 1px solid #e5e7eb;
+    background: linear-gradient(180deg, #fafafa 0%, #ffffff 100%);
+    padding: 1.25rem 1.35rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    width: 100%;
+}
+
+.guesty-bedrooms-skeleton-bar {
+    height: 14px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #e8eaee 0%, #f3f4f6 45%, #e8eaee 90%);
+    background-size: 200% 100%;
+    animation: guesty-bedrooms-shimmer 1.2s ease-in-out infinite;
+    max-width: 72%;
+    margin-bottom: 12px;
+}
+
+.guesty-bedrooms-skeleton-bar--short {
+    max-width: 40%;
+    height: 11px;
+    margin-bottom: 0;
+    opacity: 0.75;
+}
+
+@keyframes guesty-bedrooms-shimmer {
+    0% {
+        background-position: 100% 0;
+    }
+    100% {
+        background-position: -100% 0;
+    }
+}
+
+/* Outer module — fills container */
+.guesty-bedrooms-module {
+    --gb-accent: #1e3a5f;
+    --gb-accent-soft: #e8eef5;
+    --gb-text: #111827;
+    --gb-muted: #6b7280;
+    --gb-border: #e5e7eb;
+    --gb-radius: 14px;
+    --gb-radius-sm: 10px;
+    --gb-header-bg: #c7ad8e;
+    --gb-header-pattern: url("../assets/Border_1-copy.webp");
+    width: 100%;
+    max-width: 100%;
+}
+
+.guesty-bedrooms-shell {
+    margin: 0;
+    width: 100%;
+    border-radius: var(--gb-radius);
+    border: 1px solid var(--gb-border);
+    background-color: var(--gb-header-bg);
+    background-image: var(--gb-header-pattern);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow:
+        0 1px 2px rgba(15, 23, 42, 0.04),
+        0 4px 16px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.guesty-bedrooms-shell:hover {
+    box-shadow:
+        0 2px 4px rgba(15, 23, 42, 0.05),
+        0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.guesty-bedrooms-shell-summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1rem 1rem 1.2rem;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    position: relative;
+    background-color: var(--gb-header-bg);
+    background-image: var(--gb-header-pattern);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-bottom: 1px solid transparent;
+    transition: filter 0.15s ease;
+}
+
+.guesty-bedrooms-shell-summary::-webkit-details-marker {
+    display: none;
+}
+
+.guesty-bedrooms-shell[open] .guesty-bedrooms-shell-summary {
+    border-bottom-color: #b89e7f;
+    background-color: var(--gb-header-bg);
+    background-image: var(--gb-header-pattern);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.guesty-bedrooms-shell-summary:hover {
+    filter: brightness(0.98);
+}
+
+.guesty-bedrooms-shell-leading {
+    display: none;
+}
+
+.guesty-bedrooms-shell-svg {
+    width: 22px;
+    height: 22px;
+}
+
+.guesty-bedrooms-shell-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    text-align: left;
+}
+
+.guesty-bedrooms-shell-title {
+    font-size: 1rem;
+    font-weight: 650;
+    letter-spacing: 0;
+    color: #171717;
+    line-height: 1.25;
+}
+
+.guesty-bedrooms-shell-meta {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #2a2a2a;
+    letter-spacing: 0;
+}
+
+.guesty-bedrooms-shell-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    background: #ffffff;
+    position: relative;
+    border: 1px solid #d6d6d6;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    transition: transform 0.25s ease, background 0.15s ease, border-color 0.15s ease;
+}
+
+.guesty-bedrooms-shell-chevron::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: 7px;
+    height: 7px;
+    margin: -3px 0 0 -4px;
+    border-right: 2px solid #595959;
+    border-bottom: 2px solid #595959;
+    transform: rotate(45deg);
+    transition: transform 0.25s ease;
+}
+
+.guesty-bedrooms-shell[open] .guesty-bedrooms-shell-chevron {
+    background: #ffffff;
+    border-color: #cacaca;
+}
+
+.guesty-bedrooms-shell[open] .guesty-bedrooms-shell-chevron::before {
+    margin-top: 0;
+    transform: rotate(-135deg);
+    border-color: #595959;
+}
+
+.guesty-bedrooms-shell-body {
+    padding: 0.875rem clamp(0.75rem, 2vw, 1.25rem) 1.25rem;
+    background: transparent;
+    width: 100%;
+}
+
+.guesty-bedrooms-shell-inner {
+    width: 100%;
+}
+
+.guesty-bedrooms-shell-inner--empty {
+    padding: 0.5rem 0.25rem 0.35rem;
+}
+
+.guesty-bedrooms-shell-inner--empty .guesty-bedrooms-empty {
+    text-align: center;
+    margin: 0;
+    padding: 0.5rem 0.75rem 0.25rem;
+    font-size: 0.9375rem;
+    color: var(--gb-muted);
+    line-height: 1.5;
+}
+
+/* Responsive grid: as many columns as fit at min width */
+.guesty-bedrooms-cards {
+    --guesty-bedrooms-min: 260px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--guesty-bedrooms-min)), 1fr));
+    gap: clamp(0.75rem, 2vw, 1.125rem);
+    width: 100%;
+}
+
+.guesty-bedrooms-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #ffffff;
+    border-radius: var(--gb-radius-sm);
+    border: 1px solid #eceef1;
+    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+    transition:
+        border-color 0.15s ease,
+        box-shadow 0.15s ease;
+}
+
+.guesty-bedrooms-card:hover {
+    border-color: #dde3ea;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+}
+
+.guesty-bedrooms-card-photo {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    background: linear-gradient(160deg, #eef2f7 0%, #e2e8f0 100%);
+    overflow: hidden;
+}
+
+.guesty-bedrooms-card-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    vertical-align: middle;
+}
+
+.guesty-bedrooms-card-photo--placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+}
+
+.guesty-bedrooms-card-photo--placeholder img {
+    width: auto;
+    height: auto;
+    max-width: 52px;
+    max-height: 52px;
+    object-fit: contain;
+    opacity: 0.45;
+    filter: brightness(0) saturate(100%) invert(18%) sepia(18%) saturate(2000%) hue-rotate(175deg) brightness(0.75);
+}
+
+.guesty-bedrooms-card-body {
+    flex: 1;
+    min-width: 0;
+    padding: 0.9rem 1rem 1.05rem;
+}
+
+.guesty-bedrooms-card-name {
+    font-size: 0.9375rem;
+    font-weight: 650;
+    color: var(--gb-text);
+    letter-spacing: -0.015em;
+    line-height: 1.35;
+}
+
+.guesty-bedrooms-card-beds {
+    margin-top: 0.35rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--gb-muted);
+    line-height: 1.45;
+}
+
+/* Error / notice */
+.guesty-bedrooms-module--notice {
+    border-radius: var(--gb-radius);
+    border: 1px solid var(--gb-border);
+    background: #fafbfc;
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    width: 100%;
+}
+
+.guesty-bedrooms-module--notice .guesty-bedrooms-empty {
+    margin: 0;
+    font-size: 0.9375rem;
+    color: var(--gb-muted);
+    line-height: 1.5;
+}

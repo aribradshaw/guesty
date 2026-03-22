@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MannaGuesty by The Manna Agency and Flygon LC
  * Description: Securely handles Guesty API bearer token and exposes it to front-end JavaScript. Allows various Guesty API shortcode calls.
- * Version: 2.14 - sort by bedrooms
+ * Version: 2.22 - guesty_bedrooms webp header texture
  * Author: Ari Daniel Bradshaw - Flygon LC & Dan Park - The Manna Agency
  */
 
@@ -24,6 +24,7 @@ require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-all-properties.php';
 require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-listing-page-mapping.php';
 require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-slides.php';
 require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-menu.php';
+require_once dirname( MANNAPRESS_FILE ) . '/php/guesty-bedrooms.php';
 
 add_action('wp_ajax_get_guesty_token', 'guesty_token_ajax');
 add_action('wp_ajax_nopriv_get_guesty_token', 'guesty_token_ajax');
@@ -58,6 +59,27 @@ add_action('wp_enqueue_scripts', function () {
     ]);
     wp_enqueue_script('guesty-map-script');
 });
+
+add_action(
+	'wp_enqueue_scripts',
+	function () {
+		wp_register_script(
+			'guesty-bedrooms-script',
+			plugin_dir_url( __FILE__ ) . 'js/guesty-bedrooms.js',
+			array( 'jquery' ),
+			'1.7',
+			true
+		);
+		wp_localize_script(
+			'guesty-bedrooms-script',
+			'guestyBedroomsAjax',
+			array(
+				'ajax_url' => admin_url( 'admin-ajax.php' ),
+			)
+		);
+		wp_register_style( 'guesty-bedrooms-style', plugin_dir_url( __FILE__ ) . 'css/guesty-bedrooms.css', array(), '1.7' );
+	}
+);
 
 add_action('wp_enqueue_scripts', function () {    // Register (but don't enqueue) the JavaScript file for the booking calendar
     wp_register_script('guesty-booking-calendar-script', plugin_dir_url(__FILE__) . 'js/guesty-booking-calendar.js', ['jquery'], '2.2', true);
