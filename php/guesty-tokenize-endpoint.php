@@ -98,27 +98,19 @@ function guesty_tokenize_payment() {
 
     if ($response_code === 200 && isset($data['_id'])) {
         // Success - return the token
-        error_log('GUESTY TOKENIZATION SUCCESS: Payment method created: ' . json_encode([
-            'token_id' => $data['_id'],
-            'has_3ds' => isset($data['threeDS']['authURL']),
-            'listing_id' => $listing_id,
-            'provider_id' => $provider_id,
-            'amount' => $amount,
-            'currency' => $currency,
-            'cardholder_name' => $billing_details['name'] ?? 'N/A'
-        ]));
-        
         wp_send_json_success([
             'token' => $data['_id'],
             'threeDS' => $data['threeDS'] ?? null,
             'message' => 'Payment method created successfully'
         ]);
     } else {
-        // Error - log and return generic message
-        error_log('GuestyPay tokenization failed: ' . $response_body);
+        $err_hint = '';
+        if (is_array($data) && !empty($data['message'])) {
+            $err_hint = ': ' . substr((string) $data['message'], 0, 200);
+        }
+        error_log('GuestyPay tokenization failed HTTP ' . $response_code . $err_hint);
         wp_send_json_error([
             'message' => 'Payment processing failed. Please check your card details and try again.',
-            'debug' => $data['message'] ?? 'Unknown error'
         ]);
     }
 }
@@ -131,7 +123,6 @@ add_action('wp_footer', function() {
         ?>
         <script>
         window.guestyPaymentNonce = '<?php echo esc_js($nonce); ?>';
-        console.log('[PHP] Generated payment nonce:', '<?php echo esc_js($nonce); ?>');
         </script>
         <?php
     }

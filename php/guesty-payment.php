@@ -8,7 +8,6 @@ function guesty_payment_shortcode($atts) {
         <script>
         // Generate nonce directly in shortcode
         window.guestyPaymentNonce = '<?php echo wp_create_nonce('guesty_payment_nonce'); ?>';
-        console.log('[Shortcode] Generated payment nonce:', window.guestyPaymentNonce);
         </script>
         <div id="guesty-payment-fields">
             <h3>Guest Details</h3>
@@ -98,7 +97,7 @@ add_action('wp_enqueue_scripts', function () {
         'guesty-payment-serverside-script',
         plugin_dir_url(dirname(__FILE__)) . '/js/guesty-payment-serverside.js',
         ['jquery'],
-        '1.1',
+        '1.2',
         true
     );
     wp_enqueue_script('guesty-payment-serverside-script');
@@ -108,7 +107,7 @@ add_action('wp_enqueue_scripts', function () {
         'guesty-payment-script',
         plugin_dir_url(dirname(__FILE__)) . '/js/guesty-payment.js',
         ['jquery'],
-        '1.0',
+        '1.1',
         true
     );
     wp_enqueue_script('guesty-payment-script');
@@ -353,27 +352,16 @@ function guesty_create_reservation() {
     ]);
 
     if (is_wp_error($response)) {
-        wp_send_json_error(['message' => 'Error communicating with Guesty API.', 'error' => $response->get_error_message()]);
+        error_log('Guesty instant booking: ' . $response->get_error_message());
+        wp_send_json_error(['message' => 'Error communicating with Guesty API.']);
     }
 
     $data = json_decode(wp_remote_retrieve_body($response), true);
 
     if (empty($data['_id'])) {
-        wp_send_json_error(['message' => 'No confirmation returned from Guesty.', 'raw' => $data]);
+        error_log('Guesty instant booking: empty reservation id, HTTP ' . wp_remote_retrieve_response_code($response));
+        wp_send_json_error(['message' => 'No confirmation returned from Guesty.']);
     }
-
-    // Log payment verification details
-    error_log('GUESTY PAYMENT SUCCESS: Reservation created with payment details: ' . json_encode([
-        'reservation_id' => $data['_id'],
-        'confirmation_code' => $data['confirmationCode'] ?? 'N/A',
-        'status' => $data['status'] ?? 'N/A',
-        'guest_email' => $guest['email'] ?? 'N/A',
-        'cc_token_used' => $ccToken,
-        'quote_id' => $quoteId,
-        'rate_plan_id' => $ratePlanId,
-        'token_set' => $token_set,
-        'response_code' => wp_remote_retrieve_response_code($response)
-    ]));
 
     wp_send_json_success($data);
 }

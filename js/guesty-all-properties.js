@@ -1,8 +1,6 @@
 // guesty-all-properties.js
 jQuery(function($) {
     // Debug - let's see what plugin_url contains
-    console.log('Plugin URL:', guestyBookingAjax.plugin_url);
-    console.log('Full SVG URL:', guestyBookingAjax.plugin_url + 'svg/bed.svg');
     
     // Initialize Flatpickr for date range selection
     $(document).ready(function() {
@@ -42,7 +40,6 @@ jQuery(function($) {
                 }
             });
         } else {
-            console.error('Flatpickr not loaded!');
         }
     });
 
@@ -113,7 +110,6 @@ jQuery(function($) {
                         // Construct the proper plugin URL - ensure it includes the plugin directory name
                         let pluginUrl = guestyBookingAjax.plugin_url;
                         if (typeof pluginUrl === 'undefined') {
-                            console.error('[guesty-all-properties] guestyBookingAjax.plugin_url is undefined!');
                             pluginUrl = '';
                         }
                         if (!pluginUrl.includes('MannaPress')) {

@@ -389,11 +389,9 @@ window.addEventListener('DOMContentLoaded', function () {
 
     // Request a quote from the WordPress proxy
     const requestQuote = (startDate, endDate) => {
-        console.debug('[guesty-booking-calendar] requestQuote called', { startDate, endDate });
         const start = new Date(startDate);
         const end = new Date(endDate);
         if (start < minDate || end > maxDate) {
-            console.warn('[guesty-booking-calendar] Selected dates out of range', { start, end, minDate, maxDate });
             quoteDiv.html('<p>Selected dates are outside the allowed booking range.</p>');
             return;
         }
@@ -407,7 +405,6 @@ window.addEventListener('DOMContentLoaded', function () {
             token_set: window.guestyTokenSet || 0 // <-- ADD THIS LINE
         };
 
-        console.debug('[guesty-booking-calendar] Sending AJAX for quote', requestData);
         // Send the POST request to the WordPress proxy
         $('#guesty-quote-spinner').show(); // Show spinner
         $('#guesty-payment-section').hide(); // Hide form while loading
@@ -417,54 +414,24 @@ window.addEventListener('DOMContentLoaded', function () {
             method: 'POST',
             data: requestData,
             success: function(response) {
-                console.debug('[guesty-booking-calendar] Quote AJAX success', response);
                 $('#guesty-quote-spinner').hide(); // Hide spinner
-                
-                // Add mobile debugging
-                console.debug('[guesty-booking-calendar] About to show payment section');
-                console.debug('[guesty-booking-calendar] Payment section exists:', $('#guesty-payment-section').length);
-                console.debug('[guesty-booking-calendar] Payment section current display:', $('#guesty-payment-section').css('display'));
-                console.debug('[guesty-booking-calendar] Payment section current visibility:', $('#guesty-payment-section').css('visibility'));
-                console.debug('[guesty-booking-calendar] Payment section current opacity:', $('#guesty-payment-section').css('opacity'));
-                console.debug('[guesty-booking-calendar] Window width:', $(window).width());
-                console.debug('[guesty-booking-calendar] Is mobile:', $(window).width() <= 768);
-                
                 $('#guesty-payment-section').show(); // Show form
-                
-                // Add post-show debugging
-                console.debug('[guesty-booking-calendar] After show - Payment section display:', $('#guesty-payment-section').css('display'));
-                console.debug('[guesty-booking-calendar] After show - Payment section is visible:', $('#guesty-payment-section').is(':visible'));
-                
                 if (response.success) {
                     displayQuoteDetails(response.data); // Pass full data
                 } else {
-                    console.error('[guesty-booking-calendar] Quote AJAX error (success=false)', response);
                     quoteDiv.html('<p>An error occurred while fetching the quote. Please try again.</p>');
                 }
             },
             error: (xhr, status, error) => {
-                console.error('[guesty-booking-calendar] Quote AJAX error', { xhr, status, error });
                 $('#guesty-quote-spinner').hide(); // Hide spinner
-                
-                // Add mobile debugging for error case too
-                console.debug('[guesty-booking-calendar] Error case - About to show payment section');
-                console.debug('[guesty-booking-calendar] Error case - Payment section exists:', $('#guesty-payment-section').length);
-                console.debug('[guesty-booking-calendar] Error case - Window width:', $(window).width());
-                
                 $('#guesty-payment-section').show(); // Show form
-                
-                // Add post-show debugging for error case
-                console.debug('[guesty-booking-calendar] Error case - After show - Payment section is visible:', $('#guesty-payment-section').is(':visible'));
-                
                 quoteDiv.html('<p>An error occurred while fetching the quote. Please try again.</p>');
             },
         });
     };    // Display the quote details
     const displayQuoteDetails = (quote) => {
-        console.debug('[guesty-booking-calendar] displayQuoteDetails called', quote);
         // Robust error handling and extraction
         if (!quote || !quote.rates || !Array.isArray(quote.rates.ratePlans) || !quote.rates.ratePlans[0]) {
-            console.warn('[guesty-booking-calendar] No quote details available', quote);
             quoteDiv.html('<p>No quote details available. <span style="color:#b00;">[E1001]</span></p>');
             window.guestyQuoteId = null;
             window.guestyRatePlanId = null;
@@ -474,7 +441,6 @@ window.addEventListener('DOMContentLoaded', function () {
 
         const ratePlan = quote.rates.ratePlans[0];
         if (!ratePlan || !ratePlan.ratePlan || !ratePlan.ratePlan.money) {
-            console.warn('[guesty-booking-calendar] Malformed ratePlan in quote', quote);
             quoteDiv.html('<p>Malformed quote data. <span style="color:#b00;">[E1002]</span></p>');
             window.guestyQuoteId = null;
             window.guestyRatePlanId = null;
@@ -580,10 +546,7 @@ window.addEventListener('DOMContentLoaded', function () {
             checkOut,
             listingId: listingId // <-- use the actual listingId from the calendar context
         };
-        console.debug('[guesty-booking-calendar] About to trigger guesty_quote_ready', eventPayload);
-        console.debug('[guesty-booking-calendar] Set IDs - QuoteId:', window.guestyQuoteId, 'RatePlanId:', window.guestyRatePlanId);
         $(document).trigger('guesty_quote_ready', [eventPayload]);
-        console.log('[guesty-booking-calendar] guesty_quote_ready event triggered', eventPayload);
     };
 
     // Initial fetch: wait for guestyTokenSet to be ready
@@ -647,7 +610,6 @@ window.addEventListener('DOMContentLoaded', function () {
     }
     const urlCheckin = getUrlParameter('checkin');
     const urlCheckout = getUrlParameter('checkout');
-    console.log('[guesty-booking-calendar] URL checkin:', urlCheckin, 'checkout:', urlCheckout);
 
     function getCurrentMonthYear() {
         // Expects format like 'June 2025'
@@ -692,7 +654,6 @@ window.addEventListener('DOMContentLoaded', function () {
                 return;
             } else {
                 prefillState = 'done';
-                console.warn('[guesty-booking-calendar] Prefill: step limit reached for check-in month.');
                 return;
             }
         }
@@ -705,7 +666,6 @@ window.addEventListener('DOMContentLoaded', function () {
                 return;
             } else {
                 prefillState = 'done';
-                console.warn('[guesty-booking-calendar] Prefill: could not find check-in cell.');
                 return;
             }
         }
@@ -727,7 +687,6 @@ window.addEventListener('DOMContentLoaded', function () {
                 return;
             } else {
                 prefillState = 'done';
-                console.warn('[guesty-booking-calendar] Prefill: step limit reached for checkout month.');
                 return;
             }
         }
@@ -739,7 +698,6 @@ window.addEventListener('DOMContentLoaded', function () {
                 return;
             } else {
                 prefillState = 'done';
-                console.warn('[guesty-booking-calendar] Prefill: could not find checkout cell.');
                 return;
             }
         }

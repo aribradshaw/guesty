@@ -27,7 +27,6 @@ jQuery(function($) {
             bathrooms: '',
             beds: ''
         }, function(response) {
-            console.log('AJAX response received:', response);
             if (response.success && response.data.properties) {
                 allProperties = response.data.properties;
                 filteredProperties = [...allProperties]; // Create a copy for filtering
@@ -44,13 +43,10 @@ jQuery(function($) {
                 // Display all properties immediately
                 displayProperties(sortPropertiesByBedroomsDesc(allProperties));
                 
-                console.log('Properties loaded successfully:', allProperties.length);
             } else {
-                console.error('Failed to load properties:', response.data);
                 $('#properties-list').html('<div class="no-properties">No properties available</div>');
             }
         }).fail(function(xhr, status, error) {
-            console.error('AJAX request failed:', error);
             $('#properties-list').html('<div class="no-properties">Error loading properties</div>');
         });
     }
@@ -293,7 +289,6 @@ jQuery(function($) {
         // Construct the proper plugin URL
         let pluginUrl = guestyMenuAjax.plugin_url;
         if (typeof pluginUrl === 'undefined') {
-            console.error('[guesty-menu] guestyMenuAjax.plugin_url is undefined!');
             pluginUrl = '';
         }
         if (!pluginUrl.includes('MannaPress')) {

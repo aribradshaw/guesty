@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MannaGuesty by The Manna Agency and Flygon LC
  * Description: Securely handles Guesty API bearer token and exposes it to front-end JavaScript. Allows various Guesty API shortcode calls.
- * Version: 2.23 - Open API room-photo mapping, bedrooms debug, admin Open API keys
+ * Version: 2.25 - Production: remove client debug noise (console / leaked AJAX debug)
  * Author: Ari Daniel Bradshaw - Flygon LC & Dan Park - The Manna Agency
  */
 
@@ -67,7 +67,7 @@ add_action(
 			'guesty-bedrooms-script',
 			plugin_dir_url( __FILE__ ) . 'js/guesty-bedrooms.js',
 			array( 'jquery' ),
-			'1.9',
+			'2.0',
 			true
 		);
 		wp_localize_script(
@@ -82,7 +82,7 @@ add_action(
 );
 
 add_action('wp_enqueue_scripts', function () {    // Register (but don't enqueue) the JavaScript file for the booking calendar
-    wp_register_script('guesty-booking-calendar-script', plugin_dir_url(__FILE__) . 'js/guesty-booking-calendar.js', ['jquery'], '2.2', true);
+    wp_register_script('guesty-booking-calendar-script', plugin_dir_url(__FILE__) . 'js/guesty-booking-calendar.js', ['jquery'], '2.4', true);
     wp_localize_script('guesty-booking-calendar-script', 'guestyBookingAjax', [
         'ajax_url' => admin_url('admin-ajax.php'),
     ]);    // Register (but don't enqueue) the CSS file for the booking calendar

@@ -75,16 +75,9 @@ function fetch_calendar_data() {
     ]);
     $data = json_decode(wp_remote_retrieve_body($response), true);
 
-    // Instead of error_log, add debug info to the response
-    $debug = [
-        'raw_response' => $data,
-        'token_set' => $token_set,
-        'listing_id' => $listing_id,
-    ];
-
     if (is_wp_error($response) || !is_array($data)) {
-        wp_send_json_error(['message' => 'No valid data returned from API.', 'debug' => $debug]);
+        wp_send_json_error(['message' => 'No valid data returned from API.']);
     }
 
-    wp_send_json_success(['calendar' => $data, 'token_set' => $token_set, 'debug' => $debug]);
+    wp_send_json_success(['calendar' => $data, 'token_set' => $token_set]);
 }

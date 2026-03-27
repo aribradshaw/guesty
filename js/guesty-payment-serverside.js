@@ -6,14 +6,12 @@
  */
 
 jQuery(document).ready(function ($) {
-    console.log('[guesty-payment-serverside.js] Loaded - Server-side approach');
     
     // Signal that server-side approach is enabled
     window.guestyServerSideEnabled = true;
 
     // Helper: Render server-side payment form (no iframe!)
     function renderServerSidePaymentForm() {
-        console.log('[guesty-payment-serverside.js] Rendering server-side payment form');
         
         $('#guesty-tokenization-container').html(`
             <div id="guesty-serverside-form">
@@ -53,7 +51,6 @@ jQuery(document).ready(function ($) {
         // Add input formatting
         setupCardInputFormatting();
         
-        console.log('[guesty-payment-serverside.js] Server-side payment form rendered');
     }
 
     // Helper: Set up card input formatting and validation
@@ -129,7 +126,6 @@ jQuery(document).ready(function ($) {
 
     // Helper: Server-side tokenization
     async function tokenizePaymentServerSide(paymentData) {
-        console.log('[guesty-payment-serverside.js] Starting server-side tokenization...');
 
         try {
             // Check if nonce is available
@@ -137,14 +133,12 @@ jQuery(document).ready(function ($) {
                 throw new Error('Security nonce not available. Please refresh the page and try again.');
             }
             
-            console.log('[guesty-payment-serverside.js] Sending tokenization request with nonce:', window.guestyPaymentNonce);
             const response = await $.post(guestyAjax.ajax_url, {
                 action: 'guesty_tokenize_payment',
                 nonce: window.guestyPaymentNonce,
                 ...paymentData
             });
 
-            console.log('[guesty-payment-serverside.js] Tokenization response:', response);
 
             if (response.success) {
                 return {
@@ -157,14 +151,12 @@ jQuery(document).ready(function ($) {
             }
 
         } catch (error) {
-            console.error('[guesty-payment-serverside.js] Tokenization error:', error);
             throw new Error(error.responseJSON?.data?.message || error.message || 'Payment processing failed');
         }
     }
 
     // Main payment processing function
     async function processServerSidePayment() {
-        console.log('[guesty-payment-serverside.js] Processing server-side payment...');
 
         // Validate inputs
         const validationErrors = validateCardInputs();
@@ -178,7 +170,6 @@ jQuery(document).ready(function ($) {
         
         // Prevent multiple simultaneous payments
         if (window.guestyPaymentProcessing) {
-            console.log('[guesty-payment-serverside.js] Payment already in progress, skipping');
             return false;
         }
         window.guestyPaymentProcessing = true;
@@ -216,7 +207,6 @@ jQuery(document).ready(function ($) {
         const currency = window.guestyQuoteData?.quote?.rates?.ratePlans?.[0]?.money?.currency || 
                         window.guestyQuoteData?.rates?.ratePlans?.[0]?.money?.currency || 'USD';
         
-        console.log('[guesty-payment-serverside.js] Amount calculation:', {
             'guestyQuoteData.total': window.guestyQuoteData?.total,
             'ratePlan.hostPayout': window.guestyQuoteData?.quote?.rates?.ratePlans?.[0]?.ratePlan?.money?.hostPayout,
             'final amount': amount,
@@ -225,7 +215,6 @@ jQuery(document).ready(function ($) {
         
         // Validate amount
         if (amount <= 0) {
-            console.error('[guesty-payment-serverside.js] Invalid amount:', amount);
             $('#guesty-payment-message').html('<div class="error-message">Invalid booking amount. Please refresh and try again.</div>');
             window.guestyPaymentProcessing = false;
             return false;
@@ -252,7 +241,6 @@ jQuery(document).ready(function ($) {
             country: guest.address.country
         };
 
-        console.log('[guesty-payment-serverside.js] Payment data prepared:', {
             ...paymentData,
             cardNumber: '****',
             cvc: '***'
@@ -264,13 +252,11 @@ jQuery(document).ready(function ($) {
             
             if (tokenResult.threeDS?.authURL) {
                 // Handle 3D Secure if required
-                console.log('[guesty-payment-serverside.js] 3D Secure required, redirecting...');
                 window.location.href = tokenResult.threeDS.authURL;
                 return true;
             }
 
             // Step 2: Create reservation with token
-            console.log('[guesty-payment-serverside.js] Creating reservation with token:', tokenResult.token);
             
             const reservationResponse = await $.post(guestyAjax.ajax_url, {
                 action: 'guesty_create_reservation',
@@ -281,12 +267,9 @@ jQuery(document).ready(function ($) {
                 token_set: window.guestyTokenSet || 0
             });
 
-            console.log('[guesty-payment-serverside.js] Reservation response:', reservationResponse);
 
             if (reservationResponse.success) {
                 // Success! Log payment details for verification
-                console.log('[guesty-payment-serverside.js] PAYMENT SUCCESS - Full reservation data:', reservationResponse.data);
-                console.log('[guesty-payment-serverside.js] Payment verification details:', {
                     'confirmation_code': reservationResponse.data.confirmationCode,
                     'reservation_id': reservationResponse.data._id,
                     'payment_status': reservationResponse.data.status,
@@ -307,7 +290,6 @@ jQuery(document).ready(function ($) {
             }
 
         } catch (error) {
-            console.error('[guesty-payment-serverside.js] Payment error:', error);
             $('#guesty-payment-message').html('<div class="error-message">Payment failed: ' + error.message + '</div>');
             window.guestyPaymentProcessing = false;
             return false;
@@ -319,11 +301,9 @@ jQuery(document).ready(function ($) {
 
     // Wait for quote ready, then render form
     $(document).on('guesty_quote_ready', function (e, quoteData) {
-        console.log('[guesty-payment-serverside.js] Quote ready, checking if should render server-side form');
         
         // Only render for GuestyPay (not Stripe)
         if (window.guestyPaymentMethod === 'guesty' || window.guestyPaymentMethod !== 'stripe') {
-            console.log('[guesty-payment-serverside.js] Rendering server-side payment form for GuestyPay');
             renderServerSidePaymentForm();
         }
     });
@@ -332,15 +312,12 @@ jQuery(document).ready(function ($) {
     $(document).off('click', '#guesty-pay-btn').on('click', '#guesty-pay-btn', async function (e) {
         e.preventDefault();
         e.stopImmediatePropagation(); // Stop other handlers from running
-        console.log('[guesty-payment-serverside.js] Pay button clicked - server-side handler');
         
         // Only handle if this is a GuestyPay payment and server-side form is active
         if (!window.guestyServerSideEnabled || !$('#guesty-serverside-form').length) {
-            console.log('[guesty-payment-serverside.js] Not a server-side payment, letting other handlers take over');
             return;
         }
         
-        console.log('[guesty-payment-serverside.js] Processing server-side GuestyPay payment');
 
         // Show loading state
         const $btn = $(this);
@@ -354,17 +331,14 @@ jQuery(document).ready(function ($) {
                 $btn.prop('disabled', false).text(originalText);
             }
         } catch (error) {
-            console.error('[guesty-payment-serverside.js] Payment processing error:', error);
             $('#guesty-payment-message').html('<div class="error-message">Payment failed: ' + error.message + '</div>');
             $btn.prop('disabled', false).text(originalText);
         }
     });
 
-    console.log('[guesty-payment-serverside.js] Server-side payment handler initialized');
     
     // Debug: Check if button exists and add some diagnostic info
     setTimeout(() => {
-        console.log('[guesty-payment-serverside.js] Debug check:', {
             'Pay button exists': $('#guesty-pay-btn').length > 0,
             'Server-side form exists': $('#guesty-serverside-form').length > 0,
             'guestyServerSideEnabled': window.guestyServerSideEnabled,

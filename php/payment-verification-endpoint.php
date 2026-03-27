@@ -104,19 +104,12 @@ add_action('wp_footer', function() {
         ?>
         <script>
         window.verifyGuestyPayment = function(reservationId, tokenSet = 0) {
-            console.log('[Verification] Checking payment for reservation:', reservationId);
-            
             return jQuery.post(guestyAjax.ajax_url, {
                 action: 'verify_guesty_payment',
                 reservationId: reservationId,
                 token_set: tokenSet
             }).done(function(response) {
                 if (response.success) {
-                    console.log('[Verification] Payment verification data:', response.data);
-                    console.table('RESERVATION DETAILS', response.data.reservation);
-                    console.table('FINANCIAL DETAILS', response.data.financial);
-                    console.table('PROPERTY DETAILS', response.data.property);
-                    
                     // Show verification in a nice format
                     const verificationHtml = `
                         <div style="background: #f0f8ff; border: 1px solid #4CAF50; padding: 15px; margin: 10px 0; border-radius: 5px;">
@@ -132,12 +125,8 @@ add_action('wp_footer', function() {
                     `;
                     
                     jQuery('#guesty-success-message').after(verificationHtml);
-                } else {
-                    console.error('[Verification] Error:', response.data.message);
                 }
-            }).fail(function(xhr, status, error) {
-                console.error('[Verification] AJAX failed:', error);
-            });
+            }).fail(function() {});
         };
         
         // Auto-verify last payment if we have the data

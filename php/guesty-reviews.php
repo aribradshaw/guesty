@@ -119,31 +119,23 @@ function fetch_guesty_reviews() {
     }
     $response = guesty_fetch_reviews($listing_id, $token);
 
-    $debug = [
-        'raw_response' => $response,
-        'token_set' => $token_set,
-        'listing_id' => $listing_id,
-    ];
-
     // Only try fallback if token_set was not specified
     if ($token_set === 0 && (is_wp_error($response) || !isset($response['data']))) {
         $token = guesty_get_bearer_token($client_id_2, $client_secret_2);
         $response = guesty_fetch_reviews($listing_id, $token);
         $token_set = 2;
-        $debug['fallback_response'] = $response;
-        $debug['token_set_after_fallback'] = $token_set;
     }
 
     if (is_wp_error($response)) {
-        wp_send_json_error(['message' => 'Error fetching reviews.', 'error' => $response->get_error_message(), 'debug' => $debug]);
+        wp_send_json_error(['message' => 'Error fetching reviews.', 'error' => $response->get_error_message()]);
     }
 
     if (empty($response['data'])) {
-        wp_send_json_error(['message' => 'No reviews available.', 'debug' => $debug]);
+        wp_send_json_error(['message' => 'No reviews available.']);
     }
 
     $filtered_reviews = guesty_filter_hidden_reviews($listing_id, $response['data']);
-    wp_send_json_success(['reviews' => $filtered_reviews, 'token_set' => $token_set, 'debug' => $debug]);
+    wp_send_json_success(['reviews' => $filtered_reviews, 'token_set' => $token_set]);
 }
 
 function guesty_fetch_reviews($listing_id, $token) {

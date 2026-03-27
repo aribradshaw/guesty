@@ -19,8 +19,6 @@ window.addEventListener('DOMContentLoaded', function () {
                 listing_id: listingId,
                 token_set: window.guestyTokenSet || 0            },
             success: function (response) {
-                if (response.data && response.data.debug) {
-                }
                 if (response.success) {
                     if (response.data.token_set && response.data.token_set !== window.guestyTokenSet) {
                         window.guestyTokenSet = response.data.token_set;

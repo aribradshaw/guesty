@@ -1,16 +1,13 @@
 // Universal Lightbox Caption Injector
 // This script will work with ANY lightbox system on the page
 // DISABLED - Using main slideshow caption system instead
-console.log('=== UNIVERSAL LIGHTBOX CAPTION INJECTOR DISABLED ===');
 
 jQuery(document).ready(function ($) {
-    console.log('=== UNIVERSAL CAPTION SCRIPT DISABLED ===');
     
     // Function to inject captions into any lightbox - DISABLED
     function injectCaptionsIntoLightbox() {
         // DISABLED - Caption injection disabled to prevent duplicates
         return;
-        console.log('=== INJECTING CAPTIONS INTO LIGHTBOX ===');
         
         // Look for common lightbox patterns
         const lightboxSelectors = [
@@ -33,31 +30,25 @@ jQuery(document).ready(function ($) {
         lightboxSelectors.forEach(selector => {
             const $found = $(selector).filter(':visible');
             if ($found.length > 0) {
-                console.log('Found lightbox with selector:', selector, $found);
                 $lightbox = $found;
                 lightboxFound = true;
             }
         });
         
         if (!lightboxFound) {
-            console.log('No lightbox found with common selectors');
             return;
         }
         
-        console.log('Lightbox found:', $lightbox);
         
         // Look for image in lightbox
         const $lightboxImg = $lightbox.find('img').first();
         if ($lightboxImg.length === 0) {
-            console.log('No image found in lightbox');
             return;
         }
         
-        console.log('Lightbox image found:', $lightboxImg);
         
         // Get the image source to match with slider images
         const lightboxImgSrc = $lightboxImg.attr('src');
-        console.log('Lightbox image source:', lightboxImgSrc);
         
         // Find the corresponding slider image
         const $sliderImg = $('.guesty-slide img, .slider img, .gallery img').filter(function() {
@@ -66,11 +57,9 @@ jQuery(document).ready(function ($) {
         }).first();
         
         if ($sliderImg.length === 0) {
-            console.log('No matching slider image found');
             return;
         }
         
-        console.log('Matching slider image found:', $sliderImg);
         
         // Get caption from slider image alt attribute or nearby caption element
         let caption = $sliderImg.attr('alt') || '';
@@ -84,10 +73,8 @@ jQuery(document).ready(function ($) {
             }
         }
         
-        console.log('Extracted caption:', caption);
         
         if (!caption || caption.length === 0) {
-            console.log('No caption found');
             return;
         }
         
@@ -118,7 +105,6 @@ jQuery(document).ready(function ($) {
             });
         
         $lightbox.append($caption);
-        console.log('Caption injected successfully');
     }
     
     // Monitor for lightbox opening events
@@ -138,18 +124,15 @@ jQuery(document).ready(function ($) {
     
     // Monitor for common lightbox events
     $(document).on('click', 'img[data-original], .guesty-slide img, .slider img, .gallery img', function() {
-        console.log('Image clicked, waiting for lightbox to open');
         setTimeout(injectCaptionsIntoLightbox, 500);
     });
     
     // Monitor for lightbox navigation
     $(document).on('click', '[class*="next"], [class*="prev"], [class*="arrow"]', function() {
-        console.log('Lightbox navigation clicked');
         setTimeout(injectCaptionsIntoLightbox, 300);
     });
     
     // Periodic check for lightbox changes
     setInterval(injectCaptionsIntoLightbox, 1000);
     
-    console.log('=== UNIVERSAL CAPTION SCRIPT READY ===');
 });

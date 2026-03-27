@@ -12,7 +12,7 @@ function guesty_menu_shortcode($atts) {
             'guesty-menu-script',
             plugin_dir_url(__FILE__) . '../js/guesty-menu.js',
             array('jquery'),
-            '1.0',
+            '1.1',
             true
         );
         wp_localize_script(
@@ -91,9 +91,6 @@ add_action('wp_ajax_guesty_menu_properties', 'guesty_menu_properties_ajax');
 add_action('wp_ajax_nopriv_guesty_menu_properties', 'guesty_menu_properties_ajax');
 
 function guesty_menu_properties_ajax() {
-    // Log the AJAX call for debugging
-    error_log('[guesty_menu] AJAX call received');
-    
     $filters = array(
         'bedrooms' => sanitize_text_field($_POST['bedrooms'] ?? ''),
         'accommodates' => sanitize_text_field($_POST['accommodates'] ?? ''),
@@ -179,9 +176,6 @@ function guesty_menu_properties_ajax() {
 
     // Apply filters
     $filtered_results = apply_property_filters($all_results, $filters);
-    
-    // Log the results for debugging
-    error_log('[guesty_menu] Found ' . count($filtered_results) . ' properties');
 
     wp_send_json_success([
         'properties' => $filtered_results,

@@ -504,24 +504,15 @@ function guesty_count_beds_in_room( $beds ) {
  * @param string $listing_id
  * @param string $token
  * @param string $open_token
- * @param string $open_token_source
  * @return array|WP_Error
  */
-function guesty_fetch_listing_bed_arrangements( $listing_id, $token, $open_token = '', $open_token_source = '' ) {
+function guesty_fetch_listing_bed_arrangements( $listing_id, $token, $open_token = '' ) {
 	if ( ! $token ) {
 		return new WP_Error( 'no_token', 'Unable to retrieve API token.' );
 	}
 
 	$base_url       = 'https://booking.guesty.com/api/listings/' . rawurlencode( $listing_id );
 	$open_listing   = array();
-	$room_map_debug = array(
-		'property_candidates' => array(),
-		'room_mapping_found'  => false,
-		'room_mapping_rows'   => 0,
-		'endpoint_attempts'   => array(),
-		'open_token_present'  => ! empty( $open_token ),
-		'open_token_source'   => $open_token_source,
-	);
 	$args     = array(
 		'headers' => array(
 			'Authorization' => 'Bearer ' . $token,
@@ -601,7 +592,6 @@ function guesty_fetch_listing_bed_arrangements( $listing_id, $token, $open_token
 			$property_candidates[] = $cand;
 		}
 	}
-	$room_map_debug['property_candidates'] = $property_candidates;
 	if ( ! empty( $open_token ) ) {
 		$open_args = array(
 			'headers' => array(
@@ -610,48 +600,20 @@ function guesty_fetch_listing_bed_arrangements( $listing_id, $token, $open_token
 			),
 			'timeout' => 25,
 		);
-	foreach ( $property_candidates as $property_id ) {
-		$endpoints = array(
-			'https://open-api.guesty.com/v1/properties-api/room-photos/property/' . rawurlencode( $property_id ),
-		);
-		foreach ( $endpoints as $room_map_url ) {
+		foreach ( $property_candidates as $property_id ) {
+			$room_map_url = 'https://open-api.guesty.com/v1/properties-api/room-photos/property/' . rawurlencode( $property_id );
 			$room_map_res = wp_remote_get( $room_map_url, $open_args );
-			$attempt = array(
-				'property_id' => $property_id,
-				'url'         => $room_map_url,
-				'status'      => null,
-				'error'       => '',
-			);
 			if ( is_wp_error( $room_map_res ) ) {
-				$attempt['error'] = $room_map_res->get_error_message();
-				$room_map_debug['endpoint_attempts'][] = $attempt;
 				continue;
 			}
 			$room_map_code = wp_remote_retrieve_response_code( $room_map_res );
-			$attempt['status'] = (int) $room_map_code;
 			$room_map_body = json_decode( wp_remote_retrieve_body( $room_map_res ), true );
 			if ( $room_map_code < 400 && is_array( $room_map_body ) ) {
-				$rows = array();
-				guesty_collect_room_photo_rows( $room_map_body, $rows );
 				$bed_body['_room_photo_mappings'] = $room_map_body;
-				$room_map_debug['room_mapping_found'] = true;
-				$room_map_debug['room_mapping_rows'] = count( $rows );
-				$room_map_debug['endpoint_attempts'][] = $attempt;
-				break 2;
+				break;
 			}
-			$room_map_debug['endpoint_attempts'][] = $attempt;
 		}
 	}
-	}
-	if ( empty( $open_token ) ) {
-		$room_map_debug['endpoint_attempts'][] = array(
-			'property_id' => '',
-			'url'         => '',
-			'status'      => null,
-			'error'       => 'No Open API token available for room-photo lookup.',
-		);
-	}
-	$bed_body['_room_photo_debug'] = $room_map_debug;
 
 	return $bed_body;
 }
@@ -856,13 +818,12 @@ function guesty_ajax_fetch_bedrooms() {
 	$open_client_id_2 = get_option( 'guesty_open_client_id_2', '' );
 	$open_client_secret_2 = get_option( 'guesty_open_client_secret_2', '' );
 	$open_token = '';
-	$open_token_source = '';
 	if ( function_exists( 'guesty_get_open_api_token' ) ) {
 		$open_candidates = array(
-			array( 'id' => $open_client_id_1, 'secret' => $open_client_secret_1, 'source' => 'open_1' ),
-			array( 'id' => $open_client_id_2, 'secret' => $open_client_secret_2, 'source' => 'open_2' ),
-			array( 'id' => $client_id_1, 'secret' => $client_secret_1, 'source' => 'booking_1_as_open' ),
-			array( 'id' => $client_id_2, 'secret' => $client_secret_2, 'source' => 'booking_2_as_open' ),
+			array( 'id' => $open_client_id_1, 'secret' => $open_client_secret_1 ),
+			array( 'id' => $open_client_id_2, 'secret' => $open_client_secret_2 ),
+			array( 'id' => $client_id_1, 'secret' => $client_secret_1 ),
+			array( 'id' => $client_id_2, 'secret' => $client_secret_2 ),
 		);
 		foreach ( $open_candidates as $cand ) {
 			if ( empty( $cand['id'] ) || empty( $cand['secret'] ) ) {
@@ -871,19 +832,18 @@ function guesty_ajax_fetch_bedrooms() {
 			$t = guesty_get_open_api_token( $cand['id'], $cand['secret'] );
 			if ( ! empty( $t ) ) {
 				$open_token = $t;
-				$open_token_source = $cand['source'];
 				break;
 			}
 		}
 	}
 
 	$token = guesty_get_bearer_token( $client_id_1, $client_secret_1 );
-	$data = guesty_fetch_listing_bed_arrangements( $listing_id, $token, $open_token, $open_token_source );
+	$data = guesty_fetch_listing_bed_arrangements( $listing_id, $token, $open_token );
 	$token_set = 1;
 
 	if ( is_wp_error( $data ) || empty( $data['bedArrangements'] ) ) {
 		$token = guesty_get_bearer_token( $client_id_2, $client_secret_2 );
-		$data = guesty_fetch_listing_bed_arrangements( $listing_id, $token, $open_token, $open_token_source );
+		$data = guesty_fetch_listing_bed_arrangements( $listing_id, $token, $open_token );
 		$token_set = 2;
 	}
 
@@ -905,13 +865,5 @@ function guesty_ajax_fetch_bedrooms() {
 			'min_width' => $min_width,
 		)
 	);
-	$debug = array(
-		'listing_id'     => $listing_id,
-		'token_set'      => $token_set,
-		'open_token_source' => $open_token_source,
-		'has_bedrooms'   => ! empty( $data['bedArrangements']['bedrooms'] ),
-		'pictures_count' => isset( $data['pictures'] ) && is_array( $data['pictures'] ) ? count( $data['pictures'] ) : 0,
-		'room_photo'     => isset( $data['_room_photo_debug'] ) ? $data['_room_photo_debug'] : array(),
-	);
-	wp_send_json_success( array( 'html' => $html, 'token_set' => $token_set, 'debug' => $debug ) );
+	wp_send_json_success( array( 'html' => $html, 'token_set' => $token_set ) );
 }

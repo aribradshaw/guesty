@@ -340,12 +340,9 @@ function fetch_guesty_images() {
         // Add inline JavaScript to create captions immediately
         $caption_script = "
         <script>
-        console.log('PHP: Adding caption script');
         jQuery(document).ready(function() {
             function createCaptionsFromPHP() {
-                console.log('PHP: Creating captions from PHP script');
                 const images = " . json_encode($images) . ";
-                let addedCount = 0;
                 
                 jQuery('.guesty-slide').each(function(idx) {
                     const \$slide = jQuery(this);
@@ -366,11 +363,8 @@ function fetch_guesty_images() {
                         
                         const safeCaption = escapeHtml(String(img.caption));
                         \$slide.append('<div class=\"guesty-slide-caption\">' + safeCaption + '</div>');
-                        addedCount++;
                     }
                 });
-                
-                console.log('PHP: Created ' + addedCount + ' captions');
                 
                 // Add click handlers
                 jQuery('.guesty-slider-prev').off('click.php').on('click.php', function() {

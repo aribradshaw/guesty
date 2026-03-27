@@ -12,7 +12,7 @@ function guesty_all_properties_shortcode($atts) {
             'guesty-all-properties-script',
             plugin_dir_url(__FILE__) . '../js/guesty-all-properties.js',
             array('jquery'),
-            '2.1',
+            '2.2',
             true
         );
         wp_localize_script(
@@ -30,7 +30,7 @@ function guesty_all_properties_shortcode($atts) {
             'guesty-all-properties-style',
             plugin_dir_url(__FILE__) . '../css/guesty-all-properties.css',
             [],
-            '2.1'
+            '2.2'
         );
         wp_enqueue_style('guesty-all-properties-style');
     }

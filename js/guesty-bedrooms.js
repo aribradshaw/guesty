@@ -37,34 +37,14 @@
             min_width: minWidth
         })
             .done(function (response) {
-                console.log('[guesty-bedrooms] AJAX response:', response);
                 if (response.success && response.data && response.data.html) {
                     if (typeof response.data.token_set !== 'undefined') {
                         window.guestyTokenSet = response.data.token_set;
-                    }
-                    if (response.data.debug) {
-                        console.log('[guesty-bedrooms] debug:', response.data.debug);
-                        try {
-                            window.__guestyBedroomsDebug = response.data.debug;
-                            var rp = response.data.debug.room_photo || {};
-                            console.log(
-                                '[guesty-bedrooms] mapping summary:',
-                                'token_set=' + String(response.data.debug.token_set),
-                                'rooms_found=' + String(response.data.debug.has_bedrooms),
-                                'pictures=' + String(response.data.debug.pictures_count),
-                                'mapping_found=' + String(rp.room_mapping_found),
-                                'mapping_rows=' + String(rp.room_mapping_rows)
-                            );
-                            console.log('[guesty-bedrooms] debug JSON:\n' + JSON.stringify(response.data.debug, null, 2));
-                        } catch (e) {
-                            console.warn('[guesty-bedrooms] debug stringify failed:', e);
-                        }
                     }
                     root.innerHTML = response.data.html;
                     root.classList.remove('guesty-bedrooms-root--loading');
                     root.classList.add('guesty-bedrooms-loaded');
                 } else {
-                    console.warn('[guesty-bedrooms] failed payload:', response);
                     root.classList.remove('guesty-bedrooms-root--loading');
                     root.innerHTML =
                         '<div class="guesty-bedrooms-module guesty-bedrooms-module--notice"><p class="guesty-bedrooms-empty">' +
@@ -74,8 +54,7 @@
                         '</p></div>';
                 }
             })
-            .fail(function (xhr, status, error) {
-                console.error('[guesty-bedrooms] AJAX failed:', status, error, xhr && xhr.responseText ? xhr.responseText : '');
+            .fail(function () {
                 root.classList.remove('guesty-bedrooms-root--loading');
                 root.innerHTML =
                     '<div class="guesty-bedrooms-module guesty-bedrooms-module--notice"><p class="guesty-bedrooms-empty">An error occurred while loading bedrooms.</p></div>';
