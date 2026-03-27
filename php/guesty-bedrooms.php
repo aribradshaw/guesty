@@ -85,13 +85,144 @@ function guesty_score_room_caption_match( $room_name, $caption ) {
 }
 
 /**
- * Assign one picture URL per room index (0-based) using captions; fallback to bedroom-themed unused photos.
+ * Normalize text for fuzzy key matching.
+ *
+ * @param string $value
+ * @return string
+ */
+function guesty_bedrooms_norm( $value ) {
+	$value = is_string( $value ) ? strtolower( trim( $value ) ) : '';
+	return preg_replace( '/[^a-z0-9]+/', '', $value );
+}
+
+/**
+ * Build a stable picture identity key from a URL.
+ *
+ * @param string $url
+ * @return string
+ */
+function guesty_bedrooms_picture_key_from_url( $url ) {
+	if ( ! is_string( $url ) || trim( $url ) === '' ) {
+		return '';
+	}
+	$u = trim( (string) $url );
+	$u = preg_replace( '/\?.*$/', '', $u );
+	$parts = explode( '/', $u );
+	if ( empty( $parts ) ) {
+		return '';
+	}
+	$filename = end( $parts );
+	if ( is_string( $filename ) && $filename !== '' ) {
+		return guesty_bedrooms_norm( $filename );
+	}
+	return guesty_bedrooms_norm( $u );
+}
+
+/**
+ * Merge picture IDs/assignment hints from one picture list into another by URL identity.
+ *
+ * @param array<int,array> $base_pictures
+ * @param array<int,array> $id_source_pictures
+ * @return array<int,array>
+ */
+function guesty_bedrooms_merge_picture_metadata( $base_pictures, $id_source_pictures ) {
+	if ( ! is_array( $base_pictures ) || empty( $base_pictures ) || ! is_array( $id_source_pictures ) || empty( $id_source_pictures ) ) {
+		return is_array( $base_pictures ) ? $base_pictures : array();
+	}
+	$source_by_key = array();
+	foreach ( $id_source_pictures as $pic ) {
+		if ( ! is_array( $pic ) ) {
+			continue;
+		}
+		$key = guesty_bedrooms_picture_key_from_url( guesty_bedrooms_picture_display_url( $pic ) );
+		if ( $key !== '' ) {
+			$source_by_key[ $key ] = $pic;
+		}
+	}
+	foreach ( $base_pictures as $i => $pic ) {
+		if ( ! is_array( $pic ) ) {
+			continue;
+		}
+		$key = guesty_bedrooms_picture_key_from_url( guesty_bedrooms_picture_display_url( $pic ) );
+		if ( $key === '' || ! isset( $source_by_key[ $key ] ) ) {
+			continue;
+		}
+		$src = $source_by_key[ $key ];
+		foreach ( array( '_id', 'id', 'photoId', 'photo_id', 'spaceId', 'space_id', 'roomId', 'room_id', 'spaceName', 'roomName', 'assignedTo' ) as $k ) {
+			if ( empty( $base_pictures[ $i ][ $k ] ) && isset( $src[ $k ] ) && $src[ $k ] !== '' ) {
+				$base_pictures[ $i ][ $k ] = $src[ $k ];
+			}
+		}
+	}
+	return $base_pictures;
+}
+
+/**
+ * Best-effort extraction of a scalar value from a row with possible nested variants.
+ *
+ * @param array              $row
+ * @param array<int,string>  $keys
+ * @return string
+ */
+function guesty_bedrooms_row_value( $row, $keys ) {
+	if ( ! is_array( $row ) ) {
+		return '';
+	}
+	foreach ( $keys as $k ) {
+		if ( isset( $row[ $k ] ) && ( is_string( $row[ $k ] ) || is_numeric( $row[ $k ] ) ) ) {
+			$v = trim( (string) $row[ $k ] );
+			if ( $v !== '' ) {
+				return $v;
+			}
+		}
+	}
+	return '';
+}
+
+/**
+ * Recursively collect room-photo mapping rows from unknown response shapes.
+ *
+ * @param mixed                    $node
+ * @param array<int,array<string,mixed>> $rows
+ * @param int                      $depth
+ * @return void
+ */
+function guesty_collect_room_photo_rows( $node, &$rows, $depth = 0 ) {
+	if ( $depth > 5 || ! is_array( $node ) ) {
+		return;
+	}
+	$keys = array(
+		'photoId', 'photo_id', 'spaceId', 'space_id', 'roomId', 'room_id',
+		'photoUrl', 'url', 'thumbnail', 'original', 'spaceName', 'roomName',
+	);
+	$looks_like_row = false;
+	foreach ( $keys as $k ) {
+		if ( array_key_exists( $k, $node ) ) {
+			$looks_like_row = true;
+			break;
+		}
+	}
+	if ( $looks_like_row ) {
+		$rows[] = $node;
+	}
+	foreach ( $node as $v ) {
+		if ( is_array( $v ) ) {
+			guesty_collect_room_photo_rows( $v, $rows, $depth + 1 );
+		}
+	}
+}
+
+/**
+ * Assign one picture URL per room index using explicit Guesty room-photo mapping first,
+ * then caption matching and final fallbacks.
  *
  * @param array<int,array> $rooms    Ordered bed arrangement rooms.
  * @param array<int,array> $pictures Listing pictures array.
+ * @param array            $room_photo_mappings Optional response body from
+ *                                             GET /v1/properties-api/room-photos/property/{propertyId}.
  * @return array<int,string>         room_index => image URL.
  */
-function guesty_assign_photos_to_bedrooms( $rooms, $pictures ) {
+function guesty_assign_photos_to_bedrooms( $rooms, $pictures, $room_photo_mappings = array() ) {
 	$items = array();
 	if ( is_array( $pictures ) ) {
 		foreach ( $pictures as $j => $pic ) {
@@ -100,9 +231,23 @@ function guesty_assign_photos_to_bedrooms( $rooms, $pictures ) {
 				continue;
 			}
 			$cap = isset( $pic['caption'] ) ? (string) $pic['caption'] : '';
+			$pid = guesty_bedrooms_row_value( $pic, array( '_id', 'id', 'photoId', 'photo_id' ) );
+			$space_id = guesty_bedrooms_row_value( $pic, array( 'spaceId', 'space_id', 'roomId', 'room_id', 'assignedSpaceId', 'assignedRoomId' ) );
+			$space_name = guesty_bedrooms_row_value( $pic, array( 'spaceName', 'roomName', 'assignedToName', 'assignedTo' ) );
+			if ( isset( $pic['assignedTo'] ) && is_array( $pic['assignedTo'] ) ) {
+				if ( $space_id === '' ) {
+					$space_id = guesty_bedrooms_row_value( $pic['assignedTo'], array( '_id', 'id', 'spaceId', 'roomId' ) );
+				}
+				if ( $space_name === '' ) {
+					$space_name = guesty_bedrooms_row_value( $pic['assignedTo'], array( 'name', 'title', 'label' ) );
+				}
+			}
 			$items[] = array(
 				'url'     => esc_url_raw( $url ),
+				'pid'     => $pid,
 				'caption' => $cap,
+				'spaceId' => $space_id,
+				'space'   => $space_name,
 				'used'    => false,
 			);
 		}
@@ -110,10 +255,105 @@ function guesty_assign_photos_to_bedrooms( $rooms, $pictures ) {
 
 	$n_rooms = count( $rooms );
 	$assigned = array_fill( 0, $n_rooms, '' );
+	$room_idx_by_id = array();
+	$room_idx_by_name = array();
+	foreach ( $rooms as $ri => $room ) {
+		foreach ( array( '_id', 'id', 'spaceId', 'roomId', 'uuid' ) as $rk ) {
+			if ( ! empty( $room[ $rk ] ) ) {
+				$room_idx_by_id[ guesty_bedrooms_norm( (string) $room[ $rk ] ) ] = (int) $ri;
+			}
+		}
+		$rname = isset( $room['name'] ) ? guesty_bedrooms_norm( (string) $room['name'] ) : '';
+		if ( $rname !== '' ) {
+			$room_idx_by_name[ $rname ] = (int) $ri;
+		}
+	}
+
+	$item_idx_by_pid = array();
+	$item_idx_by_url = array();
+	foreach ( $items as $j => $it ) {
+		if ( ! empty( $it['pid'] ) ) {
+			$item_idx_by_pid[ guesty_bedrooms_norm( (string) $it['pid'] ) ] = (int) $j;
+		}
+		$item_idx_by_url[ guesty_bedrooms_norm( (string) $it['url'] ) ] = (int) $j;
+	}
+
+	// 0) Explicit room-photo mapping from Guesty Room Photos API (source of truth).
+	$mapping_rows = array();
+	guesty_collect_room_photo_rows( $room_photo_mappings, $mapping_rows );
+	$has_explicit_assignments = ! empty( $mapping_rows );
+	foreach ( $mapping_rows as $row ) {
+		$m_photo_id = guesty_bedrooms_row_value( $row, array( 'photoId', 'photo_id', '_id', 'id' ) );
+		$m_photo_url = guesty_bedrooms_row_value( $row, array( 'photoUrl', 'url', 'original', 'thumbnail' ) );
+		if ( isset( $row['photo'] ) && is_array( $row['photo'] ) ) {
+			if ( $m_photo_id === '' ) {
+				$m_photo_id = guesty_bedrooms_row_value( $row['photo'], array( '_id', 'id', 'photoId' ) );
+			}
+			if ( $m_photo_url === '' ) {
+				$m_photo_url = guesty_bedrooms_row_value( $row['photo'], array( 'url', 'original', 'thumbnail' ) );
+			}
+		}
+		$m_space_id = guesty_bedrooms_row_value( $row, array( 'spaceId', 'space_id', 'roomId', 'room_id' ) );
+		$m_space_name = guesty_bedrooms_row_value( $row, array( 'spaceName', 'roomName', 'name' ) );
+		if ( isset( $row['space'] ) && is_array( $row['space'] ) ) {
+			if ( $m_space_id === '' ) {
+				$m_space_id = guesty_bedrooms_row_value( $row['space'], array( '_id', 'id', 'spaceId', 'roomId' ) );
+			}
+			if ( $m_space_name === '' ) {
+				$m_space_name = guesty_bedrooms_row_value( $row['space'], array( 'name', 'title', 'label' ) );
+			}
+		}
+
+		$ri = -1;
+		$space_id_key = guesty_bedrooms_norm( $m_space_id );
+		$space_name_key = guesty_bedrooms_norm( $m_space_name );
+		if ( $space_id_key !== '' && isset( $room_idx_by_id[ $space_id_key ] ) ) {
+			$ri = (int) $room_idx_by_id[ $space_id_key ];
+		} elseif ( $space_name_key !== '' && isset( $room_idx_by_name[ $space_name_key ] ) ) {
+			$ri = (int) $room_idx_by_name[ $space_name_key ];
+		}
+
+		$j = -1;
+		$photo_id_key = guesty_bedrooms_norm( $m_photo_id );
+		$photo_url_key = guesty_bedrooms_norm( $m_photo_url );
+		if ( $photo_id_key !== '' && isset( $item_idx_by_pid[ $photo_id_key ] ) ) {
+			$j = (int) $item_idx_by_pid[ $photo_id_key ];
+		} elseif ( $photo_url_key !== '' && isset( $item_idx_by_url[ $photo_url_key ] ) ) {
+			$j = (int) $item_idx_by_url[ $photo_url_key ];
+		}
+
+		if ( $ri >= 0 && $j >= 0 && $assigned[ $ri ] === '' && ! $items[ $j ]['used'] ) {
+			$assigned[ $ri ]     = $items[ $j ]['url'];
+			$items[ $j ]['used'] = true;
+		}
+	}
+
+	// 0.5) Also honor direct per-photo room/space markers if present in picture payload.
+	foreach ( $items as $j => $it ) {
+		if ( $it['used'] ) {
+			continue;
+		}
+		$ri = -1;
+		$space_id_key = guesty_bedrooms_norm( isset( $it['spaceId'] ) ? (string) $it['spaceId'] : '' );
+		$space_name_key = guesty_bedrooms_norm( isset( $it['space'] ) ? (string) $it['space'] : '' );
+		if ( $space_id_key !== '' && isset( $room_idx_by_id[ $space_id_key ] ) ) {
+			$ri = (int) $room_idx_by_id[ $space_id_key ];
+		} elseif ( $space_name_key !== '' && isset( $room_idx_by_name[ $space_name_key ] ) ) {
+			$ri = (int) $room_idx_by_name[ $space_name_key ];
+		}
+		if ( $ri >= 0 && $assigned[ $ri ] === '' ) {
+			$assigned[ $ri ]     = $it['url'];
+			$items[ $j ]['used'] = true;
+			$has_explicit_assignments = true;
+		}
+	}
 
 	foreach ( $rooms as $ri => $room ) {
+		if ( $assigned[ $ri ] !== '' ) {
+			continue;
+		}
 		$name = isset( $room['name'] ) ? (string) $room['name'] : '';
-		$best_score = 26;
+		$best_score = $has_explicit_assignments ? 87 : 26;
 		$best_j     = -1;
 		foreach ( $items as $j => $it ) {
 			if ( $it['used'] ) {
@@ -132,6 +372,9 @@ function guesty_assign_photos_to_bedrooms( $rooms, $pictures ) {
 	}
 
 	$pool = array();
+	if ( $has_explicit_assignments ) {
+		return $assigned;
+	}
 	foreach ( $items as $j => $it ) {
 		if ( $it['used'] ) {
 			continue;
@@ -153,6 +396,33 @@ function guesty_assign_photos_to_bedrooms( $rooms, $pictures ) {
 		$assigned[ $ri ]     = $items[ $j ]['url'];
 		$items[ $j ]['used'] = true;
 		++$p;
+	}
+
+	// Final backfill: if themed caption matching runs out, use any remaining photo
+	// so bedroom cards do not show placeholders when gallery images exist.
+	$generic_pool = array();
+	$bath_pool    = array();
+	foreach ( $items as $j => $it ) {
+		if ( $it['used'] ) {
+			continue;
+		}
+		$c = strtolower( $it['caption'] );
+		if ( strpos( $c, 'bathroom' ) !== false && strpos( $c, 'bedroom' ) === false ) {
+			$bath_pool[] = $j;
+		} else {
+			$generic_pool[] = $j;
+		}
+	}
+	$fill_pool = array_merge( $generic_pool, $bath_pool );
+	$f         = 0;
+	for ( $ri = 0; $ri < $n_rooms; $ri++ ) {
+		if ( $assigned[ $ri ] !== '' || ! isset( $fill_pool[ $f ] ) ) {
+			continue;
+		}
+		$j                   = $fill_pool[ $f ];
+		$assigned[ $ri ]     = $items[ $j ]['url'];
+		$items[ $j ]['used'] = true;
+		++$f;
 	}
 
 	return $assigned;
@@ -224,41 +494,166 @@ function guesty_count_beds_in_room( $beds ) {
 }
 
 /**
- * Fetch listing bedArrangements from Booking Engine API.
+ * Fetch listing bedArrangements + full pictures and attach room-photo mappings when available.
+ *
+ * Uses:
+ * - Booking Engine API listing endpoints for bedArrangements + picture URLs.
+ * - Guesty Open API Room Photos endpoint as source of truth for photo->space assignment:
+ *   GET /v1/properties-api/room-photos/property/{propertyId}
  *
  * @param string $listing_id
  * @param string $token
+ * @param string $open_token
+ * @param string $open_token_source
  * @return array|WP_Error
  */
-function guesty_fetch_listing_bed_arrangements( $listing_id, $token ) {
+function guesty_fetch_listing_bed_arrangements( $listing_id, $token, $open_token = '', $open_token_source = '' ) {
 	if ( ! $token ) {
 		return new WP_Error( 'no_token', 'Unable to retrieve API token.' );
 	}
 
-	$fields = 'bedArrangements pictures';
-	$url    = 'https://booking.guesty.com/api/listings/' . rawurlencode( $listing_id ) . '?fields=' . rawurlencode( $fields );
-	$response = wp_remote_get(
-		$url,
-		array(
+	$base_url       = 'https://booking.guesty.com/api/listings/' . rawurlencode( $listing_id );
+	$open_listing   = array();
+	$room_map_debug = array(
+		'property_candidates' => array(),
+		'room_mapping_found'  => false,
+		'room_mapping_rows'   => 0,
+		'endpoint_attempts'   => array(),
+		'open_token_present'  => ! empty( $open_token ),
+		'open_token_source'   => $open_token_source,
+	);
+	$args     = array(
+		'headers' => array(
+			'Authorization' => 'Bearer ' . $token,
+			'Accept'        => 'application/json; charset=utf-8',
+		),
+		'timeout' => 25,
+	);
+
+	// 1) Get bedArrangements explicitly (this endpoint reliably includes bedroom config).
+	$bed_url      = $base_url . '?fields=' . rawurlencode( 'bedArrangements pictures' );
+	$bed_response = wp_remote_get( $bed_url, $args );
+	if ( is_wp_error( $bed_response ) ) {
+		return $bed_response;
+	}
+	$bed_code = wp_remote_retrieve_response_code( $bed_response );
+	$bed_body = json_decode( wp_remote_retrieve_body( $bed_response ), true );
+	if ( $bed_code >= 400 || ! is_array( $bed_body ) ) {
+		return new WP_Error( 'api_error', 'Listing request failed.', array( 'status' => $bed_code ) );
+	}
+
+	// 2) Get full listing for untruncated gallery pictures (sparse fieldsets can cap nested pictures).
+	$full_response = wp_remote_get( $base_url, $args );
+	if ( ! is_wp_error( $full_response ) ) {
+		$full_code = wp_remote_retrieve_response_code( $full_response );
+		$full_body = json_decode( wp_remote_retrieve_body( $full_response ), true );
+		if ( $full_code < 400 && is_array( $full_body ) ) {
+			if ( empty( $bed_body['bedArrangements'] ) && ! empty( $full_body['bedArrangements'] ) ) {
+				$bed_body['bedArrangements'] = $full_body['bedArrangements'];
+			}
+			if ( isset( $full_body['pictures'] ) && is_array( $full_body['pictures'] ) && ! empty( $full_body['pictures'] ) ) {
+				$bed_body['pictures'] = $full_body['pictures'];
+			}
+		}
+	}
+
+	// 3) Try Open API listing payload (often includes picture IDs used by room-photo mapping).
+	if ( ! empty( $open_token ) ) {
+		$open_args = array(
 			'headers' => array(
-				'Authorization' => 'Bearer ' . $token,
+				'Authorization' => 'Bearer ' . $open_token,
 				'Accept'        => 'application/json; charset=utf-8',
 			),
 			'timeout' => 25,
-		)
-	);
-
-	if ( is_wp_error( $response ) ) {
-		return $response;
+		);
+		$open_listing_url = 'https://open-api.guesty.com/v1/listings/' . rawurlencode( $listing_id ) . '?fields=' . rawurlencode( 'bedArrangements pictures propertyId property' );
+		$open_listing_res = wp_remote_get( $open_listing_url, $open_args );
+		if ( ! is_wp_error( $open_listing_res ) ) {
+			$open_code = wp_remote_retrieve_response_code( $open_listing_res );
+			$open_body = json_decode( wp_remote_retrieve_body( $open_listing_res ), true );
+			if ( $open_code < 400 && is_array( $open_body ) ) {
+				$open_listing = $open_body;
+				if ( ! empty( $open_body['bedArrangements'] ) ) {
+					$bed_body['bedArrangements'] = $open_body['bedArrangements'];
+				}
+				if ( isset( $open_body['pictures'] ) && is_array( $open_body['pictures'] ) && ! empty( $open_body['pictures'] ) ) {
+					$bed_body['pictures'] = guesty_bedrooms_merge_picture_metadata( $bed_body['pictures'], $open_body['pictures'] );
+				}
+				if ( ! empty( $open_body['propertyId'] ) && empty( $bed_body['propertyId'] ) ) {
+					$bed_body['propertyId'] = (string) $open_body['propertyId'];
+				}
+			}
+		}
 	}
 
-	$code = wp_remote_retrieve_response_code( $response );
-	$body = json_decode( wp_remote_retrieve_body( $response ), true );
-	if ( $code >= 400 || ! is_array( $body ) ) {
-		return new WP_Error( 'api_error', 'Listing request failed.', array( 'status' => $code ) );
+	// 4) Pull explicit Guesty room-photo assignments and attach raw payload for matcher.
+	$property_candidates = array();
+	foreach ( array(
+		$listing_id,
+		isset( $bed_body['propertyId'] ) ? (string) $bed_body['propertyId'] : '',
+		isset( $bed_body['property']['_id'] ) ? (string) $bed_body['property']['_id'] : '',
+		isset( $open_listing['propertyId'] ) ? (string) $open_listing['propertyId'] : '',
+		isset( $open_listing['property']['_id'] ) ? (string) $open_listing['property']['_id'] : '',
+		isset( $open_listing['property']['id'] ) ? (string) $open_listing['property']['id'] : '',
+	) as $cand ) {
+		$cand = trim( (string) $cand );
+		if ( $cand !== '' && ! in_array( $cand, $property_candidates, true ) ) {
+			$property_candidates[] = $cand;
+		}
 	}
+	$room_map_debug['property_candidates'] = $property_candidates;
+	if ( ! empty( $open_token ) ) {
+		$open_args = array(
+			'headers' => array(
+				'Authorization' => 'Bearer ' . $open_token,
+				'Accept'        => 'application/json; charset=utf-8',
+			),
+			'timeout' => 25,
+		);
+	foreach ( $property_candidates as $property_id ) {
+		$endpoints = array(
+			'https://open-api.guesty.com/v1/properties-api/room-photos/property/' . rawurlencode( $property_id ),
+		);
+		foreach ( $endpoints as $room_map_url ) {
+			$room_map_res = wp_remote_get( $room_map_url, $open_args );
+			$attempt = array(
+				'property_id' => $property_id,
+				'url'         => $room_map_url,
+				'status'      => null,
+				'error'       => '',
+			);
+			if ( is_wp_error( $room_map_res ) ) {
+				$attempt['error'] = $room_map_res->get_error_message();
+				$room_map_debug['endpoint_attempts'][] = $attempt;
+				continue;
+			}
+			$room_map_code = wp_remote_retrieve_response_code( $room_map_res );
+			$attempt['status'] = (int) $room_map_code;
+			$room_map_body = json_decode( wp_remote_retrieve_body( $room_map_res ), true );
+			if ( $room_map_code < 400 && is_array( $room_map_body ) ) {
+				$rows = array();
+				guesty_collect_room_photo_rows( $room_map_body, $rows );
+				$bed_body['_room_photo_mappings'] = $room_map_body;
+				$room_map_debug['room_mapping_found'] = true;
+				$room_map_debug['room_mapping_rows'] = count( $rows );
+				$room_map_debug['endpoint_attempts'][] = $attempt;
+				break 2;
+			}
+			$room_map_debug['endpoint_attempts'][] = $attempt;
+		}
+	}
+	}
+	if ( empty( $open_token ) ) {
+		$room_map_debug['endpoint_attempts'][] = array(
+			'property_id' => '',
+			'url'         => '',
+			'status'      => null,
+			'error'       => 'No Open API token available for room-photo lookup.',
+		);
+	}
+	$bed_body['_room_photo_debug'] = $room_map_debug;
 
-	return $body;
+	return $bed_body;
 }
 
 /**
@@ -303,7 +698,7 @@ function guesty_bedrooms_module_shell( $inner_html, $room_count, $title, $shell_
 /**
  * Build HTML for bedroom module from API bedArrangements.
  *
- * @param array  $listing_response Decoded GET /listings/{id}?fields=bedArrangements
+ * @param array  $listing_response Decoded GET /listings/{id} (needs bedArrangements + pictures)
  * @param bool   $include_shared   Include SHARED_SPACE rooms
  * @param array  $opts             title, expanded, min_width (int px for grid min column)
  */
@@ -363,7 +758,8 @@ function guesty_build_bedrooms_html( $listing_response, $include_shared = false,
 	$room_count     = count( $rooms );
 	$shell_expanded = ! empty( $opts['expanded'] );
 	$pictures       = isset( $listing_response['pictures'] ) && is_array( $listing_response['pictures'] ) ? $listing_response['pictures'] : array();
-	$photo_by_room  = guesty_assign_photos_to_bedrooms( $rooms, $pictures );
+	$room_mappings  = isset( $listing_response['_room_photo_mappings'] ) && is_array( $listing_response['_room_photo_mappings'] ) ? $listing_response['_room_photo_mappings'] : array();
+	$photo_by_room  = guesty_assign_photos_to_bedrooms( $rooms, $pictures, $room_mappings );
 
 	$list = '<ul class="guesty-bedrooms-cards" role="list" style="--guesty-bedrooms-min:' . (int) $min_w . 'px;">';
 	foreach ( $rooms as $i => $room ) {
@@ -455,14 +851,39 @@ function guesty_ajax_fetch_bedrooms() {
 	$client_secret_1 = get_option( 'guesty_client_secret_1', '' );
 	$client_id_2 = get_option( 'guesty_client_id_2', '' );
 	$client_secret_2 = get_option( 'guesty_client_secret_2', '' );
+	$open_client_id_1 = get_option( 'guesty_open_client_id_1', '' );
+	$open_client_secret_1 = get_option( 'guesty_open_client_secret_1', '' );
+	$open_client_id_2 = get_option( 'guesty_open_client_id_2', '' );
+	$open_client_secret_2 = get_option( 'guesty_open_client_secret_2', '' );
+	$open_token = '';
+	$open_token_source = '';
+	if ( function_exists( 'guesty_get_open_api_token' ) ) {
+		$open_candidates = array(
+			array( 'id' => $open_client_id_1, 'secret' => $open_client_secret_1, 'source' => 'open_1' ),
+			array( 'id' => $open_client_id_2, 'secret' => $open_client_secret_2, 'source' => 'open_2' ),
+			array( 'id' => $client_id_1, 'secret' => $client_secret_1, 'source' => 'booking_1_as_open' ),
+			array( 'id' => $client_id_2, 'secret' => $client_secret_2, 'source' => 'booking_2_as_open' ),
+		);
+		foreach ( $open_candidates as $cand ) {
+			if ( empty( $cand['id'] ) || empty( $cand['secret'] ) ) {
+				continue;
+			}
+			$t = guesty_get_open_api_token( $cand['id'], $cand['secret'] );
+			if ( ! empty( $t ) ) {
+				$open_token = $t;
+				$open_token_source = $cand['source'];
+				break;
+			}
+		}
+	}
 
 	$token = guesty_get_bearer_token( $client_id_1, $client_secret_1 );
-	$data = guesty_fetch_listing_bed_arrangements( $listing_id, $token );
+	$data = guesty_fetch_listing_bed_arrangements( $listing_id, $token, $open_token, $open_token_source );
 	$token_set = 1;
 
 	if ( is_wp_error( $data ) || empty( $data['bedArrangements'] ) ) {
 		$token = guesty_get_bearer_token( $client_id_2, $client_secret_2 );
-		$data = guesty_fetch_listing_bed_arrangements( $listing_id, $token );
+		$data = guesty_fetch_listing_bed_arrangements( $listing_id, $token, $open_token, $open_token_source );
 		$token_set = 2;
 	}
 
@@ -484,5 +905,13 @@ function guesty_ajax_fetch_bedrooms() {
 			'min_width' => $min_width,
 		)
 	);
-	wp_send_json_success( array( 'html' => $html, 'token_set' => $token_set ) );
+	$debug = array(
+		'listing_id'     => $listing_id,
+		'token_set'      => $token_set,
+		'open_token_source' => $open_token_source,
+		'has_bedrooms'   => ! empty( $data['bedArrangements']['bedrooms'] ),
+		'pictures_count' => isset( $data['pictures'] ) && is_array( $data['pictures'] ) ? count( $data['pictures'] ) : 0,
+		'room_photo'     => isset( $data['_room_photo_debug'] ) ? $data['_room_photo_debug'] : array(),
+	);
+	wp_send_json_success( array( 'html' => $html, 'token_set' => $token_set, 'debug' => $debug ) );
 }

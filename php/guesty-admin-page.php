@@ -27,6 +27,10 @@ function guesty_settings_page() {
             update_option('guesty_client_secret_1', sanitize_text_field($_POST['guesty_client_secret_1']));
             update_option('guesty_client_id_2', sanitize_text_field($_POST['guesty_client_id_2']));
             update_option('guesty_client_secret_2', sanitize_text_field($_POST['guesty_client_secret_2']));
+            update_option('guesty_open_client_id_1', sanitize_text_field($_POST['guesty_open_client_id_1'] ?? ''));
+            update_option('guesty_open_client_secret_1', sanitize_text_field($_POST['guesty_open_client_secret_1'] ?? ''));
+            update_option('guesty_open_client_id_2', sanitize_text_field($_POST['guesty_open_client_id_2'] ?? ''));
+            update_option('guesty_open_client_secret_2', sanitize_text_field($_POST['guesty_open_client_secret_2'] ?? ''));
             // Save payment method and Stripe keys for each token set
             update_option('guesty_payment_method_1', sanitize_text_field($_POST['guesty_payment_method_1']));
             update_option('guesty_stripe_secret_1', sanitize_text_field($_POST['guesty_stripe_secret_1']));
@@ -44,6 +48,10 @@ function guesty_settings_page() {
     $client_secret_1 = get_option('guesty_client_secret_1', '');
     $client_id_2 = get_option('guesty_client_id_2', '');
     $client_secret_2 = get_option('guesty_client_secret_2', '');
+    $open_client_id_1 = get_option('guesty_open_client_id_1', '');
+    $open_client_secret_1 = get_option('guesty_open_client_secret_1', '');
+    $open_client_id_2 = get_option('guesty_open_client_id_2', '');
+    $open_client_secret_2 = get_option('guesty_open_client_secret_2', '');
     // Get payment method and Stripe keys for each token set
     $payment_method_1 = get_option('guesty_payment_method_1', 'guesty');
     $stripe_secret_1 = get_option('guesty_stripe_secret_1', '');
@@ -75,6 +83,22 @@ function guesty_settings_page() {
                 <tr>
                     <th scope="row"><label for="guesty_client_secret_2">Client Secret 2 (fallback)</label></th>
                     <td><input type="text" name="guesty_client_secret_2" id="guesty_client_secret_2" value="<?php echo esc_attr($client_secret_2); ?>" class="regular-text"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="guesty_open_client_id_1">Open API Client ID 1</label></th>
+                    <td><input type="text" name="guesty_open_client_id_1" id="guesty_open_client_id_1" value="<?php echo esc_attr($open_client_id_1); ?>" class="regular-text"><p class="description">Used for room-photo assignments (Open API).</p></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="guesty_open_client_secret_1">Open API Client Secret 1</label></th>
+                    <td><input type="text" name="guesty_open_client_secret_1" id="guesty_open_client_secret_1" value="<?php echo esc_attr($open_client_secret_1); ?>" class="regular-text"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="guesty_open_client_id_2">Open API Client ID 2 (fallback)</label></th>
+                    <td><input type="text" name="guesty_open_client_id_2" id="guesty_open_client_id_2" value="<?php echo esc_attr($open_client_id_2); ?>" class="regular-text"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="guesty_open_client_secret_2">Open API Client Secret 2 (fallback)</label></th>
+                    <td><input type="text" name="guesty_open_client_secret_2" id="guesty_open_client_secret_2" value="<?php echo esc_attr($open_client_secret_2); ?>" class="regular-text"></td>
                 </tr>
                 <tr>
                 <th scope="row">Payment Method 1</th>

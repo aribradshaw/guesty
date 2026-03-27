@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MannaGuesty by The Manna Agency and Flygon LC
  * Description: Securely handles Guesty API bearer token and exposes it to front-end JavaScript. Allows various Guesty API shortcode calls.
- * Version: 2.22 - guesty_bedrooms webp header texture
+ * Version: 2.23 - Open API room-photo mapping, bedrooms debug, admin Open API keys
  * Author: Ari Daniel Bradshaw - Flygon LC & Dan Park - The Manna Agency
  */
 
@@ -67,7 +67,7 @@ add_action(
 			'guesty-bedrooms-script',
 			plugin_dir_url( __FILE__ ) . 'js/guesty-bedrooms.js',
 			array( 'jquery' ),
-			'1.7',
+			'1.9',
 			true
 		);
 		wp_localize_script(
@@ -116,6 +116,49 @@ function guesty_get_bearer_token($client_id, $client_secret) {
     }
 
     set_transient($cache_key, $data['access_token'], 60 * 60 * 23); // Cache for 23 hours
+    return $data['access_token'];
+}
+
+/**
+ * Get Guesty Open API token (scope: open-api).
+ *
+ * @param string $client_id
+ * @param string $client_secret
+ * @return string|null
+ */
+function guesty_get_open_api_token($client_id, $client_secret) {
+    if (empty($client_id) || empty($client_secret)) {
+        return null;
+    }
+
+    $cache_key = 'guesty_open_api_token_' . md5($client_id);
+    $stored_token = get_transient($cache_key);
+    if ($stored_token) {
+        return $stored_token;
+    }
+
+    $response = wp_remote_post('https://open-api.guesty.com/oauth2/token', [
+        'headers' => ['Content-Type' => 'application/x-www-form-urlencoded'],
+        'body' => [
+            'grant_type' => 'client_credentials',
+            'scope' => 'open-api',
+            'client_id' => $client_id,
+            'client_secret' => $client_secret,
+        ],
+        'timeout' => 20,
+    ]);
+
+    if (is_wp_error($response)) {
+        return null;
+    }
+
+    $data = json_decode(wp_remote_retrieve_body($response), true);
+    if (empty($data['access_token'])) {
+        return null;
+    }
+
+    // Open API tokens are typically valid for 24h.
+    set_transient($cache_key, $data['access_token'], 60 * 60 * 23);
     return $data['access_token'];
 }
 
