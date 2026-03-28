@@ -206,13 +206,7 @@ jQuery(document).ready(function ($) {
         
         const currency = window.guestyQuoteData?.quote?.rates?.ratePlans?.[0]?.money?.currency || 
                         window.guestyQuoteData?.rates?.ratePlans?.[0]?.money?.currency || 'USD';
-        
-            'guestyQuoteData.total': window.guestyQuoteData?.total,
-            'ratePlan.hostPayout': window.guestyQuoteData?.quote?.rates?.ratePlans?.[0]?.ratePlan?.money?.hostPayout,
-            'final amount': amount,
-            'currency': currency
-        });
-        
+
         // Validate amount
         if (amount <= 0) {
             $('#guesty-payment-message').html('<div class="error-message">Invalid booking amount. Please refresh and try again.</div>');
@@ -241,11 +235,6 @@ jQuery(document).ready(function ($) {
             country: guest.address.country
         };
 
-            ...paymentData,
-            cardNumber: '****',
-            cvc: '***'
-        });
-
         try {
             // Step 1: Tokenize payment method
             const tokenResult = await tokenizePaymentServerSide(paymentData);
@@ -269,19 +258,6 @@ jQuery(document).ready(function ($) {
 
 
             if (reservationResponse.success) {
-                // Success! Log payment details for verification
-                    'confirmation_code': reservationResponse.data.confirmationCode,
-                    'reservation_id': reservationResponse.data._id,
-                    'payment_status': reservationResponse.data.status,
-                    'guest_id': reservationResponse.data.guestId,
-                    'platform': reservationResponse.data.platform,
-                    'created_at': reservationResponse.data.createdAt,
-                    'listing_id': window.guestyListingId,
-                    'payment_amount': amount,
-                    'payment_currency': currency,
-                    'payment_token_used': tokenResult.token
-                });
-                
                 $('#guesty-payment-section').hide();
                 $('<div id="guesty-success-message" style="background: #d4edda; color: #155724; padding: 20px; border-radius: 5px; margin: 20px 0; text-align: center; font-size: 18px; font-weight: bold;">✅ Booking confirmed! Confirmation #: ' + reservationResponse.data.confirmationCode + '<br><small>Payment processed for $' + amount + ' ' + currency + '</small></div>').insertAfter('#guesty-payment-section');
                 return true;
@@ -335,14 +311,4 @@ jQuery(document).ready(function ($) {
             $btn.prop('disabled', false).text(originalText);
         }
     });
-
-    
-    // Debug: Check if button exists and add some diagnostic info
-    setTimeout(() => {
-            'Pay button exists': $('#guesty-pay-btn').length > 0,
-            'Server-side form exists': $('#guesty-serverside-form').length > 0,
-            'guestyServerSideEnabled': window.guestyServerSideEnabled,
-            'Current payment method': window.guestyPaymentMethod
-        });
-    }, 2000);
 }); 

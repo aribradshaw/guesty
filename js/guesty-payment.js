@@ -384,7 +384,7 @@ jQuery(document).ready(function ($) {
         window.guestyListingId =
             quoteData?.listingId ||
             quoteData?.quote?.listingId ||
-            quoteData?.debug?.listing_id ||
+            quoteData?.quote?.listing_id ||
             null;
 
         const listingId = window.guestyListingId;
@@ -440,29 +440,12 @@ jQuery(document).ready(function ($) {
         if (window.guestyServerSideEnabled && window.guestyPaymentMethod !== 'stripe') {
             return;
         }
-        
-        // Debug: Log current state before payment
-            'window.guestyPaymentMethod': window.guestyPaymentMethod,
-            'window.guestyTokenization': typeof window.guestyTokenization,
-            'window.guestyPaymentProviderId': window.guestyPaymentProviderId,
-            'window.guestyTokenSet': window.guestyTokenSet,
-            'window.guestyQuoteId': window.guestyQuoteId,
-            'window.guestyRatePlanId': window.guestyRatePlanId,
-            'window.guestyListingId': window.guestyListingId
-        });
-        
+
         // Show loading state
         const $btn = $(this);
         const originalText = $btn.text();
         $btn.prop('disabled', true).html('<span class="loading-spinner"></span> Processing...');
-        
-        // Debug: Log the full quote data structure
-            'window.guestyQuoteData?.total': window.guestyQuoteData?.total,
-            'window.guestyQuoteData?.quote?.total': window.guestyQuoteData?.quote?.total,
-            'window.guestyQuoteData?.quote?.rates?.ratePlans?.[0]?.ratePlan?.money?.hostPayout': window.guestyQuoteData?.quote?.rates?.ratePlans?.[0]?.ratePlan?.money?.hostPayout,
-            'window.guestyQuoteData?.rates?.ratePlans?.[0]?.ratePlan?.money?.hostPayout': window.guestyQuoteData?.rates?.ratePlans?.[0]?.ratePlan?.money?.hostPayout
-        });
-        
+
         // Gather guest info
         window.guestyGuestInfo = {
             firstName: $('#guest-first-name').val(),
@@ -547,13 +530,7 @@ jQuery(document).ready(function ($) {
                 guest: guest,
                 listing_id: window.guestyListingId
             };
-                'payment_method': paymentMethod.id,
-                'quote_id': window.guestyQuoteId,
-                'rate_plan_id': window.guestyRatePlanId,
-                'guest': guest,
-                'listing_id': window.guestyListingId
-            });
-            
+
             $.post(guestyAjax.ajax_url, reservationData, function(response) {
                 if (!response.success) {
                     $('#guesty-payment-message').html('Booking failed: ' + (response.data.message || 'Unknown error'));
@@ -572,12 +549,6 @@ jQuery(document).ready(function ($) {
         
         // GuestyPay logic
         try {
-            // Debug: Check GuestyPay objects before payment
-                'window.guestyTokenization': typeof window.guestyTokenization,
-                'window.guestyPaymentProviderId': window.guestyPaymentProviderId,
-                'window.guestyTokenization?.submit': typeof window.guestyTokenization?.submit
-            });
-            
             if (!window.guestyTokenization) {
                 $('#guesty-payment-message').html('Payment system not loaded. Please refresh.');
                 $btn.prop('disabled', false).text(originalText); // Reset button
@@ -597,25 +568,7 @@ jQuery(document).ready(function ($) {
                 $btn.prop('disabled', false).text(originalText); // Reset button
                 return;
             }
-            
-                amount,
-                currency,
-                apiVersion: 'v2',
-                quoteId,
-                guest: {
-                    firstName: guest.firstName,
-                    lastName: guest.lastName,
-                    email: guest.email,
-                    phone: guest.phone,
-                    address: {
-                        line1: guest.address.line1,
-                        city: guest.address.city,
-                        country: guest.address.country,
-                        postal_code: guest.address.postal_code
-                    }
-                }
-            });
-            
+
             const paymentMethod = await window.guestyTokenization.submit({
                 amount,
                 currency,
@@ -672,5 +625,4 @@ jQuery(document).ready(function ($) {
         }
     });
     
-    // Debug: Log final state after initialization
 });

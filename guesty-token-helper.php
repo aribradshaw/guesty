@@ -2,7 +2,7 @@
 /**
  * Plugin Name: MannaGuesty by The Manna Agency and Flygon LC
  * Description: Securely handles Guesty API bearer token and exposes it to front-end JavaScript. Allows various Guesty API shortcode calls.
- * Version: 2.25 - Production: remove client debug noise (console / leaked AJAX debug)
+ * Version: 2.26 - Fix payment JS syntax (broken after console.log strip)
  * Author: Ari Daniel Bradshaw - Flygon LC & Dan Park - The Manna Agency
  */
 

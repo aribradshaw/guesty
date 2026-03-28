@@ -97,7 +97,7 @@ add_action('wp_enqueue_scripts', function () {
         'guesty-payment-serverside-script',
         plugin_dir_url(dirname(__FILE__)) . '/js/guesty-payment-serverside.js',
         ['jquery'],
-        '1.2',
+        '1.3',
         true
     );
     wp_enqueue_script('guesty-payment-serverside-script');
@@ -107,7 +107,7 @@ add_action('wp_enqueue_scripts', function () {
         'guesty-payment-script',
         plugin_dir_url(dirname(__FILE__)) . '/js/guesty-payment.js',
         ['jquery'],
-        '1.1',
+        '1.2',
         true
     );
     wp_enqueue_script('guesty-payment-script');
